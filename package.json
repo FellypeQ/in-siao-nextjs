@@ -5,12 +5,12 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:vercel": "npm run prisma:generate && npm run prisma:migrate:deploy:prod && next build",
+    "build:vercel": "npm run prisma:generate && npm run prisma:migrate:deploy:vercel && next build",
     "start": "next start",
     "lint": "eslint",
     "prisma:generate": "prisma generate",
     "prisma:migrate:deploy": "prisma migrate deploy",
-    "prisma:migrate:deploy:prod": "if [ \"$VERCEL_ENV\" = \"production\" ]; then prisma migrate deploy; else echo \"Skipping prisma migrate deploy for VERCEL_ENV=$VERCEL_ENV\"; fi",
+    "prisma:migrate:deploy:vercel": "if [ \"$VERCEL_ENV\" = \"production\" ] && [ \"$RUN_DB_MIGRATIONS\" = \"true\" ]; then echo \"Running prisma migrate deploy on Vercel production\"; prisma migrate deploy; else echo \"Skipping prisma migrate deploy (VERCEL_ENV=$VERCEL_ENV, RUN_DB_MIGRATIONS=$RUN_DB_MIGRATIONS)\"; fi",
     "test": "vitest run",
     "test:watch": "vitest"
   },

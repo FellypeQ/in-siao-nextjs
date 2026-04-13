@@ -12,6 +12,8 @@ const deletePraysByIdsRepositoryMock = vi.fn()
 const findMemberRelationshipByIdRepositoryMock = vi.fn()
 const createMemberRepositoryMock = vi.fn()
 const createMemberRelationshipRepositoryMock = vi.fn()
+const deleteMemberRelationshipRepositoryMock = vi.fn()
+const ensureMemberVisitorProfileRepositoryMock = vi.fn()
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -68,7 +70,8 @@ vi.mock("@/modules/visitantes/repositories/create-member-pray.repository", () =>
 }))
 
 vi.mock("@/modules/visitantes/repositories/delete-member-relationship.repository", () => ({
-  deleteMemberRelationshipRepository: vi.fn()
+  deleteMemberRelationshipRepository: (...args: unknown[]) =>
+    deleteMemberRelationshipRepositoryMock(...args)
 }))
 
 vi.mock("@/modules/visitantes/repositories/count-member-relationships-by-member-id.repository", () => ({
@@ -83,10 +86,17 @@ vi.mock("@/modules/visitantes/repositories/update-member-relationship.repository
   updateMemberRelationshipRepository: vi.fn()
 }))
 
+vi.mock("@/modules/visitantes/repositories/ensure-member-visitor-profile.repository", () => ({
+  ensureMemberVisitorProfileRepository: (...args: unknown[]) =>
+    ensureMemberVisitorProfileRepositoryMock(...args)
+}))
+
 describe("updateVisitanteService", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     findMemberPraysByMemberIdRepositoryMock.mockResolvedValue([])
+    deleteMemberRelationshipRepositoryMock.mockResolvedValue({ id: "rel-1" })
+    ensureMemberVisitorProfileRepositoryMock.mockResolvedValue({ id: "vp-2" })
   })
 
   it("lanca erro quando visitante nao existe", async () => {
@@ -139,5 +149,39 @@ describe("updateVisitanteService", () => {
     expect(createMemberRepositoryMock).toHaveBeenCalledTimes(1)
     expect(createMemberRelationshipRepositoryMock).toHaveBeenCalledTimes(1)
     expect(result.id).toBe("member-1")
+  })
+
+  it("aplica operacao unlink e garante perfil de visitante do familiar", async () => {
+    findVisitanteByIdRepositoryMock.mockResolvedValue({
+      id: "member-1",
+      visitorProfile: { id: "vp-1" }
+    })
+    updateMemberRepositoryMock.mockResolvedValue({ id: "member-1" })
+    updateMemberVisitorRepositoryMock.mockResolvedValue({ id: "vp-1" })
+    deleteMemberPraysByMemberIdRepositoryMock.mockResolvedValue({ count: 0 })
+    deletePraysByIdsRepositoryMock.mockResolvedValue({ count: 0 })
+    findMemberRelationshipByIdRepositoryMock.mockResolvedValue({
+      id: "rel-1",
+      principalMemberId: "member-1",
+      relatedMemberId: "member-2"
+    })
+
+    await updateVisitanteService({
+      id: "member-1",
+      name: "Visitante",
+      birthDate: new Date("1990-01-01"),
+      baptized: true,
+      actualChurch: "EVANGELICAL",
+      howKnow: "EVENT",
+      familyOperations: [
+        {
+          action: "unlink",
+          relationshipId: "rel-1"
+        }
+      ]
+    })
+
+    expect(deleteMemberRelationshipRepositoryMock).toHaveBeenCalledWith("rel-1", {})
+    expect(ensureMemberVisitorProfileRepositoryMock).toHaveBeenCalledWith("member-2", {})
   })
 })

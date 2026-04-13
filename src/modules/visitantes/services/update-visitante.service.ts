@@ -10,6 +10,7 @@ import { deleteMemberPraysByMemberIdRepository } from "@/modules/visitantes/repo
 import { deleteMemberRelationshipRepository } from "@/modules/visitantes/repositories/delete-member-relationship.repository"
 import { deleteMemberRepository } from "@/modules/visitantes/repositories/delete-member.repository"
 import { deletePraysByIdsRepository } from "@/modules/visitantes/repositories/delete-prays-by-ids.repository"
+import { ensureMemberVisitorProfileRepository } from "@/modules/visitantes/repositories/ensure-member-visitor-profile.repository"
 import { findMemberPraysByMemberIdRepository } from "@/modules/visitantes/repositories/find-member-prays-by-member-id.repository"
 import { findMemberRelationshipByIdRepository } from "@/modules/visitantes/repositories/find-member-relationship-by-id.repository"
 import { findVisitanteByIdRepository } from "@/modules/visitantes/repositories/find-visitante-by-id.repository"
@@ -116,6 +117,7 @@ export async function updateVisitanteService(input: UpdateVisitanteInput) {
 
         if (operation.action === "unlink") {
           await deleteMemberRelationshipRepository(operation.relationshipId, tx)
+          await ensureMemberVisitorProfileRepository(relationship.relatedMemberId, tx)
           continue
         }
 

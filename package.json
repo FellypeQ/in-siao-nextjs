@@ -10,7 +10,7 @@
     "lint": "eslint",
     "prisma:generate": "prisma generate",
     "prisma:migrate:deploy": "prisma migrate deploy",
-    "prisma:migrate:deploy:vercel": "if [ \"$VERCEL_ENV\" = \"production\" ] && [ \"$RUN_DB_MIGRATIONS\" = \"true\" ]; then echo \"Running prisma migrate deploy on Vercel production\"; prisma migrate deploy; else echo \"Skipping prisma migrate deploy (VERCEL_ENV=$VERCEL_ENV, RUN_DB_MIGRATIONS=$RUN_DB_MIGRATIONS)\"; fi",
+    "prisma:migrate:deploy:vercel": "if [ \"$VERCEL_ENV\" = \"production\" ] && [ \"$RUN_DB_MIGRATIONS\" = \"true\" ]; then if [ -z \"$DIRECT_URL\" ]; then echo \"DIRECT_URL is required to run Prisma migrations on Vercel production\"; exit 1; fi; echo \"Running prisma migrate deploy on Vercel production\"; prisma migrate deploy; else echo \"Skipping prisma migrate deploy (VERCEL_ENV=$VERCEL_ENV, RUN_DB_MIGRATIONS=$RUN_DB_MIGRATIONS)\"; fi",
     "test": "vitest run",
     "test:watch": "vitest"
   },

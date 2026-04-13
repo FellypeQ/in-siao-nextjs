@@ -65,33 +65,33 @@ model User {
 }
 
 model Member {
-  id                  String               @id @default(cuid())
-  name                String
-  birthDate           DateTime
-  document            String?              @unique
-  phone               String?
-  type                MemberType           @default(VISITOR)
-  baptized            Boolean
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-  visitorProfile      MemberVisitor?
-  memberPrays         MemberPray[]
-  principalRelations  MemberRelationship[] @relation("PrincipalMember")
-  relatedRelations    MemberRelationship[] @relation("RelatedMember")
+  id                 String               @id @default(cuid())
+  name               String
+  birthDate          DateTime
+  document           String?              @unique
+  phone              String?
+  type               MemberType           @default(VISITOR)
+  baptized           Boolean
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  visitorProfile     MemberVisitor?
+  memberPrays        MemberPray[]
+  principalRelations MemberRelationship[] @relation("PrincipalMember")
+  relatedRelations   MemberRelationship[] @relation("RelatedMember")
 
   @@unique([name, birthDate])
   @@map("members")
 }
 
 model MemberVisitor {
-  id                 String      @id @default(cuid())
-  memberId           String      @unique
+  id                 String       @id @default(cuid())
+  memberId           String       @unique
   actualChurch       ActualChurch
   howKnow            HowKnow
   howKnowOtherAnswer String?
-  createdAt          DateTime    @default(now())
-  updatedAt          DateTime    @updatedAt
-  member             Member      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  member             Member       @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
   @@map("member_visitors")
 }

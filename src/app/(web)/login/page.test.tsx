@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import LoginPage from "@/app/login/page"
+import LoginPage from "@/app/(web)/login/page"
 
 const pushMock = vi.fn()
 const refreshMock = vi.fn()

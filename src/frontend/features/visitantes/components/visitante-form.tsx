@@ -235,6 +235,15 @@ export function VisitanteForm({ mode, visitanteId }: VisitanteFormProps) {
     setQueuedFamilyOperations((current) => [...current, operation])
   }
 
+  function handleCancel() {
+    if (window.history.length > 1) {
+      router.back()
+      return
+    }
+
+    router.push("/visitantes")
+  }
+
   async function handleSubmit(action: "save" | "saveAndAddAnother") {
     setErrorMessage("")
     setSuccessMessage("")
@@ -594,7 +603,7 @@ export function VisitanteForm({ mode, visitanteId }: VisitanteFormProps) {
             {successMessage && <Alert severity="success">{successMessage}</Alert>}
 
             <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
-              <Button variant="text" onClick={() => router.push("/visitantes")}>
+              <Button variant="text" onClick={handleCancel}>
                 Cancelar
               </Button>
               <Button variant="contained" onClick={() => void handleSubmit("save")} disabled={submitting}>

@@ -2,7 +2,7 @@
 
 import CssBaseline from "@mui/material/CssBaseline"
 import { ThemeProvider, createTheme } from "@mui/material/styles"
-import type { ReactNode } from "react"
+import { Suspense, type ReactNode } from "react"
 
 import { GlobalLoadingBar } from "@/frontend/components/feedback/global-loading-bar"
 
@@ -158,7 +158,9 @@ export function Providers({ children }: ProvidersProps) {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <GlobalLoadingBar />
+      <Suspense fallback={null}>
+        <GlobalLoadingBar />
+      </Suspense>
       {children}
     </ThemeProvider>
   )

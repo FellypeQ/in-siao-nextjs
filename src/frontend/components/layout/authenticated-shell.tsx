@@ -1,6 +1,6 @@
 "use client"
 
-import LogoutIcon from '@mui/icons-material/Logout';
+import LogoutIcon from "@mui/icons-material/Logout"
 import MenuIcon from "@mui/icons-material/Menu"
 import HomeIcon from "@mui/icons-material/Home"
 import GroupAddIcon from "@mui/icons-material/GroupAdd"

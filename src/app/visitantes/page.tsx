@@ -1,6 +1,6 @@
-import { AuthenticatedShell } from "@/components/layout/authenticated-shell"
+import { AuthenticatedShell } from "@/frontend/components/layout/authenticated-shell"
 import { requireAuthSession } from "@/lib/require-auth-session"
-import { VisitantesList } from "@/modules/visitantes/components/visitantes-list"
+import { VisitantesList } from "@/frontend/features/visitantes/components/visitantes-list"
 
 export default async function VisitantesPage() {
   const session = await requireAuthSession()

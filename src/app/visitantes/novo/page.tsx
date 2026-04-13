@@ -1,6 +1,6 @@
-import { AuthenticatedShell } from "@/components/layout/authenticated-shell"
+import { AuthenticatedShell } from "@/frontend/components/layout/authenticated-shell"
+import { VisitanteForm } from "@/frontend/features/visitantes/components/visitante-form"
 import { requireAuthSession } from "@/lib/require-auth-session"
-import { VisitanteForm } from "@/modules/visitantes/components/visitante-form"
 
 export default async function NovoVisitantePage() {
   const session = await requireAuthSession()

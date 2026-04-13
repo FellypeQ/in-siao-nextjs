@@ -1,5 +1,7 @@
 "use client"
 
+import DeleteIcon from "@mui/icons-material/Delete"
+import LinkOffIcon from "@mui/icons-material/LinkOff"
 import {
   Alert,
   Box,
@@ -14,8 +16,6 @@ import {
   TextField,
   Typography
 } from "@mui/material"
-import DeleteIcon from "@mui/icons-material/Delete"
-import LinkOffIcon from "@mui/icons-material/LinkOff"
 import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 
@@ -541,7 +541,7 @@ export function VisitanteForm({ mode, visitanteId }: VisitanteFormProps) {
 
                     <Box sx={{ display: "flex", justifyContent: "space-between", gap: 1 }}>
                       <Button color="inherit" onClick={() => removeFamily(member.localId)}>
-                        Remover bloco
+                        Remover membro
                       </Button>
 
                       {isEditMode && member.persisted && member.relationshipId && member.memberId && (
@@ -582,7 +582,10 @@ export function VisitanteForm({ mode, visitanteId }: VisitanteFormProps) {
             ))}
 
             <Box>
-              <Button variant="outlined" onClick={() => setFamilyMembers((current) => [...current, createFamilyItem()])}>
+              <Button
+                variant="outlined"
+                onClick={() => setFamilyMembers((current) => [...current, createFamilyItem()])}
+              >
                 Adicionar membro familiar
               </Button>
             </Box>
@@ -591,12 +594,10 @@ export function VisitanteForm({ mode, visitanteId }: VisitanteFormProps) {
             {successMessage && <Alert severity="success">{successMessage}</Alert>}
 
             <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
-              <Button variant="text" onClick={() => router.push("/visitantes")}>Cancelar</Button>
-              <Button
-                variant="contained"
-                onClick={() => void handleSubmit("save")}
-                disabled={submitting}
-              >
+              <Button variant="text" onClick={() => router.push("/visitantes")}>
+                Cancelar
+              </Button>
+              <Button variant="contained" onClick={() => void handleSubmit("save")} disabled={submitting}>
                 {submitting ? <CircularProgress size={20} color="inherit" /> : "Salvar"}
               </Button>
               <Button

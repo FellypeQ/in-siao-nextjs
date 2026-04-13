@@ -4,6 +4,8 @@ import CssBaseline from "@mui/material/CssBaseline"
 import { ThemeProvider, createTheme } from "@mui/material/styles"
 import type { ReactNode } from "react"
 
+import { GlobalLoadingBar } from "@/frontend/components/feedback/global-loading-bar"
+
 /**
  * Theme oficial do projeto In-Sião
  * Baseado na identidade visual da Igreja Batista Sião
@@ -156,6 +158,7 @@ export function Providers({ children }: ProvidersProps) {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <GlobalLoadingBar />
       {children}
     </ThemeProvider>
   )

@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import { VisitanteForm } from "@/modules/visitantes/components/visitante-form"
+import { VisitanteForm } from "@/frontend/features/visitantes/components/visitante-form"
 
 const pushMock = vi.fn()
 const refreshMock = vi.fn()

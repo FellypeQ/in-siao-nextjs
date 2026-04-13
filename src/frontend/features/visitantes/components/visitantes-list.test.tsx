@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import { VisitantesList } from "@/modules/visitantes/components/visitantes-list"
+import { VisitantesList } from "@/frontend/features/visitantes/components/visitantes-list"
 
 const pushMock = vi.fn()
 

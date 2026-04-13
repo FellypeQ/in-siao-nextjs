@@ -1,5 +1,6 @@
 import { Box, Button, Card, CardContent, Stack, Typography } from "@mui/material"
 import { cookies } from "next/headers"
+import Link from "next/link"
 import { redirect } from "next/navigation"
 
 import { AuthenticatedShell } from "@/components/layout/authenticated-shell"
@@ -33,9 +34,9 @@ export default async function HomePage() {
             </Typography>
 
             <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap", pt: 1 }}>
-              <Button variant="contained" disabled>
-                Cadastrar visitante
-              </Button>
+              <Link href="/visitantes/novo" style={{ textDecoration: "none" }}>
+                <Button variant="contained">Cadastrar visitante</Button>
+              </Link>
               <Button variant="outlined" disabled>
                 Vincular numero a crianca para salinha
               </Button>

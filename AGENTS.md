@@ -368,6 +368,24 @@ Nunca editar banco manualmente.
 
 ---
 
+## Prisma Client (obrigatório)
+
+Sempre que houver qualquer atualização de banco, o agent deve executar:
+
+```bash
+npx prisma generate
+```
+
+Aplica para:
+
+* alteração no `prisma/schema.prisma`
+* criação/edição de migration
+* mudança de enums, models, relações e constraints
+
+Sem gerar o client, a feature não está pronta.
+
+---
+
 ## Seeds
 
 Seeds devem ficar em:
@@ -459,6 +477,15 @@ MUI
 ```
 
 Nunca misturar múltiplos frameworks de UI.
+
+Em páginas Server Component (App Router), evitar passar função diretamente para Client Component via props.
+
+Exemplo: evitar `component={Link}` direto em componentes MUI renderizados em Server Component.
+
+Preferir:
+
+* wrapper com `<Link>` envolvendo o componente visual
+* ou mover a interação para um Client Component dedicado
 
 ---
 
@@ -557,10 +584,12 @@ Uma feature só está pronta quando:
 * Repository criado
 * Schema criado
 * Migration criada
+* `npx prisma generate` executado após mudanças de banco
 * Controller criado
 * Validação implementada
 * Erros tratados
 * Código tipado
+* Testes automatizados da entrega passando
 
 ---
 
@@ -573,6 +602,47 @@ Agents devem:
 * Não acessar banco fora de repository
 * Não colocar lógica em controller
 * Não criar código fora da estrutura definida
+* Rodar `npx prisma generate` sempre que atualizar banco
+* Executar testes e lint antes de concluir entrega
+
+Checklist mínimo de saída do agent:
+
+1. Banco atualizado (quando aplicável)
+2. Prisma Client gerado
+3. Testes passando
+4. Lint sem erro
+5. Critérios da SPEC atendidos
+
+---
+
+# Agents Específicos (quando necessário)
+
+## Agent de Banco (Prisma)
+
+Responsável por:
+
+* modelagem Prisma
+* migrations
+* constraints e índices
+* execução obrigatória de `npx prisma generate`
+
+## Agent de API (Controller/Service/Repository)
+
+Responsável por:
+
+* schemas Zod
+* services com regra de negócio
+* repositories com Prisma
+* rotas API finas e padronizadas
+
+## Agent de UI (MUI + App Router)
+
+Responsável por:
+
+* páginas e componentes visuais
+* integração com API
+* evitar padrões que quebrem Server/Client boundaries
+* testes de comportamento de UI
 
 ---
 

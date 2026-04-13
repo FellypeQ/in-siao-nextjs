@@ -3,6 +3,7 @@
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from "@mui/icons-material/Menu"
 import HomeIcon from "@mui/icons-material/Home"
+import GroupAddIcon from "@mui/icons-material/GroupAdd"
 import {
   AppBar,
   Avatar,
@@ -57,6 +58,14 @@ export function AuthenticatedShell({ user, children }: AuthenticatedShellProps) 
               <HomeIcon />
             </ListItemIcon>
             <ListItemText primary="Home" />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton component={Link} href="/visitantes" onClick={() => setMobileOpen(false)}>
+            <ListItemIcon sx={{ color: "inherit" }}>
+              <GroupAddIcon />
+            </ListItemIcon>
+            <ListItemText primary="Visitantes" />
           </ListItemButton>
         </ListItem>
       </List>

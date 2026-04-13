@@ -15,6 +15,42 @@ enum Role {
   ADMIN
 }
 
+enum MemberType {
+  VISITOR
+  REGULAR_ATTENDEE
+  MEMBER
+}
+
+enum ActualChurch {
+  NONE
+  EVANGELICAL
+  CATHOLIC
+  OTHER
+  NO_REPORT
+}
+
+enum HowKnow {
+  FRIEND_OR_FAMILY_REFERRAL
+  SOCIAL_MEDIA
+  WALK_IN
+  EVENT
+  GOOGLE_SEARCH
+  OTHER
+}
+
+enum RelationshipType {
+  SPOUSE
+  CHILD
+  FATHER
+  MOTHER
+  SIBLING
+  GRANDPARENT
+  GRANDCHILD
+  UNCLE_AUNT
+  COUSIN
+  OTHER
+}
+
 model User {
   id                 String   @id @default(cuid())
   nome               String
@@ -26,4 +62,71 @@ model User {
   updatedAt          DateTime @updatedAt
 
   @@map("users")
+}
+
+model Member {
+  id                  String               @id @default(cuid())
+  name                String
+  birthDate           DateTime
+  document            String?              @unique
+  phone               String?
+  type                MemberType           @default(VISITOR)
+  baptized            Boolean
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  visitorProfile      MemberVisitor?
+  memberPrays         MemberPray[]
+  principalRelations  MemberRelationship[] @relation("PrincipalMember")
+  relatedRelations    MemberRelationship[] @relation("RelatedMember")
+
+  @@unique([name, birthDate])
+  @@map("members")
+}
+
+model MemberVisitor {
+  id                 String      @id @default(cuid())
+  memberId           String      @unique
+  actualChurch       ActualChurch
+  howKnow            HowKnow
+  howKnowOtherAnswer String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  member             Member      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("member_visitors")
+}
+
+model Pray {
+  id          String       @id @default(cuid())
+  text        String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  memberPrays MemberPray[]
+
+  @@map("prays")
+}
+
+model MemberPray {
+  memberId  String
+  prayId    String
+  createdAt DateTime @default(now())
+  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  pray      Pray     @relation(fields: [prayId], references: [id], onDelete: Cascade)
+
+  @@id([memberId, prayId])
+  @@map("member_prays")
+}
+
+model MemberRelationship {
+  id                String           @id @default(cuid())
+  principalMemberId String
+  relatedMemberId   String
+  relationshipType  RelationshipType
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  principalMember   Member           @relation("PrincipalMember", fields: [principalMemberId], references: [id], onDelete: Cascade)
+  relatedMember     Member           @relation("RelatedMember", fields: [relatedMemberId], references: [id], onDelete: Cascade)
+
+  @@unique([principalMemberId, relatedMemberId, relationshipType])
+  @@map("member_relationships")
 }

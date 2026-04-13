@@ -3,6 +3,14 @@
 import DeleteIcon from "@mui/icons-material/Delete"
 import LinkOffIcon from "@mui/icons-material/LinkOff"
 import {
+  actualChurchOptions,
+  howKnowOptions,
+  relationshipTypeOptions,
+  type ActualChurchValue,
+  type HowKnowValue,
+  type RelationshipTypeValue
+} from "@/frontend/features/visitantes/constants/visitante-enum-translations"
+import {
   Alert,
   Box,
   Button,
@@ -21,18 +29,6 @@ import { useEffect, useMemo, useState } from "react"
 
 type FormMode = "create" | "edit"
 
-type RelationshipType =
-  | "SPOUSE"
-  | "CHILD"
-  | "FATHER"
-  | "MOTHER"
-  | "SIBLING"
-  | "GRANDPARENT"
-  | "GRANDCHILD"
-  | "UNCLE_AUNT"
-  | "COUSIN"
-  | "OTHER"
-
 type FamilyFormItem = {
   localId: string
   relationshipId?: string
@@ -40,7 +36,7 @@ type FamilyFormItem = {
   name: string
   birthDate: string
   phone: string
-  relationshipType: RelationshipType
+  relationshipType: RelationshipTypeValue
   persisted: boolean
 }
 
@@ -51,7 +47,7 @@ type FamilyOperation =
         name: string
         birthDate: string
         phone?: string
-        relationshipType: RelationshipType
+        relationshipType: RelationshipTypeValue
       }
     }
   | {
@@ -62,7 +58,7 @@ type FamilyOperation =
         name: string
         birthDate: string
         phone?: string
-        relationshipType: RelationshipType
+        relationshipType: RelationshipTypeValue
       }
     }
   | { action: "unlink"; relationshipId: string }
@@ -78,14 +74,8 @@ type VisitanteFormState = {
   birthDate: string
   phone: string
   baptized: "true" | "false"
-  actualChurch: "NONE" | "EVANGELICAL" | "CATHOLIC" | "OTHER" | "NO_REPORT"
-  howKnow:
-    | "FRIEND_OR_FAMILY_REFERRAL"
-    | "SOCIAL_MEDIA"
-    | "WALK_IN"
-    | "EVENT"
-    | "GOOGLE_SEARCH"
-    | "OTHER"
+  actualChurch: ActualChurchValue
+  howKnow: HowKnowValue
   howKnowOtherAnswer: string
   prayText: string
 }
@@ -100,19 +90,6 @@ const initialState: VisitanteFormState = {
   howKnowOtherAnswer: "",
   prayText: ""
 }
-
-const relationshipOptions: Array<{ value: RelationshipType; label: string }> = [
-  { value: "SPOUSE", label: "Conjuge" },
-  { value: "CHILD", label: "Filho(a)" },
-  { value: "FATHER", label: "Pai" },
-  { value: "MOTHER", label: "Mae" },
-  { value: "SIBLING", label: "Irmao(a)" },
-  { value: "GRANDPARENT", label: "Avo" },
-  { value: "GRANDCHILD", label: "Neto(a)" },
-  { value: "UNCLE_AUNT", label: "Tio(a)" },
-  { value: "COUSIN", label: "Primo(a)" },
-  { value: "OTHER", label: "Outro" }
-]
 
 function createFamilyItem(): FamilyFormItem {
   return {
@@ -169,7 +146,7 @@ export function VisitanteForm({ mode, visitanteId }: VisitanteFormProps) {
             prayers: Array<{ text: string }>
             familyRelationships: Array<{
               id: string
-              relationshipType: RelationshipType
+              relationshipType: RelationshipTypeValue
               relatedMember: {
                 id: string
                 name: string
@@ -426,17 +403,17 @@ export function VisitanteForm({ mode, visitanteId }: VisitanteFormProps) {
                   onChange={(event) =>
                     updateState(
                       "actualChurch",
-                      event.target.value as VisitanteFormState["actualChurch"]
+                      event.target.value as ActualChurchValue
                     )
                   }
                   required
                   fullWidth
                 >
-                  <MenuItem value="NONE">Nao frequento nenhuma</MenuItem>
-                  <MenuItem value="EVANGELICAL">Igreja evangelica</MenuItem>
-                  <MenuItem value="CATHOLIC">Igreja catolica</MenuItem>
-                  <MenuItem value="OTHER">Outra religiao</MenuItem>
-                  <MenuItem value="NO_REPORT">Prefiro nao responder</MenuItem>
+                  {actualChurchOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
                 </TextField>
               </Grid>
 
@@ -445,18 +422,15 @@ export function VisitanteForm({ mode, visitanteId }: VisitanteFormProps) {
                   select
                   label="Como voce conheceu nossa igreja?"
                   value={state.howKnow}
-                  onChange={(event) =>
-                    updateState("howKnow", event.target.value as VisitanteFormState["howKnow"])
-                  }
+                  onChange={(event) => updateState("howKnow", event.target.value as HowKnowValue)}
                   required
                   fullWidth
                 >
-                  <MenuItem value="FRIEND_OR_FAMILY_REFERRAL">Indicacao de amigos/familia</MenuItem>
-                  <MenuItem value="SOCIAL_MEDIA">Redes sociais</MenuItem>
-                  <MenuItem value="WALK_IN">Passei na frente</MenuItem>
-                  <MenuItem value="EVENT">Evento</MenuItem>
-                  <MenuItem value="GOOGLE_SEARCH">Google</MenuItem>
-                  <MenuItem value="OTHER">Outra</MenuItem>
+                  {howKnowOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
                 </TextField>
               </Grid>
 
@@ -533,13 +507,13 @@ export function VisitanteForm({ mode, visitanteId }: VisitanteFormProps) {
                           value={member.relationshipType}
                           onChange={(event) =>
                             updateFamily(member.localId, {
-                              relationshipType: event.target.value as RelationshipType
+                              relationshipType: event.target.value as RelationshipTypeValue
                             })
                           }
                           required
                           fullWidth
                         >
-                          {relationshipOptions.map((option) => (
+                          {relationshipTypeOptions.map((option) => (
                             <MenuItem key={option.value} value={option.value}>
                               {option.label}
                             </MenuItem>

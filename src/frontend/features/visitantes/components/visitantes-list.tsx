@@ -15,6 +15,11 @@ import {
   Stack,
   Typography
 } from "@mui/material"
+import {
+  translateActualChurch,
+  translateHowKnow,
+  translateRelationshipType
+} from "@/frontend/features/visitantes/constants/visitante-enum-translations"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
@@ -222,10 +227,10 @@ export function VisitantesList() {
                 <strong>Batizado:</strong> {selected.member.baptized ? "Sim" : "Nao"}
               </Typography>
               <Typography>
-                <strong>Igreja atual:</strong> {selected.visitorProfile.actualChurch}
+                <strong>Igreja atual:</strong> {translateActualChurch(selected.visitorProfile.actualChurch)}
               </Typography>
               <Typography>
-                <strong>Como conheceu:</strong> {selected.visitorProfile.howKnow}
+                <strong>Como conheceu:</strong> {translateHowKnow(selected.visitorProfile.howKnow)}
               </Typography>
 
               {selected.visitorProfile.howKnowOtherAnswer && (
@@ -246,7 +251,7 @@ export function VisitantesList() {
                 <Stack spacing={0.8} sx={{ mt: 0.5 }}>
                   {selected.familyRelationships.map((item) => (
                     <Typography key={item.id} color="text.secondary" variant="body2">
-                      {item.relatedMember.name} - {item.relationshipType}
+                      {item.relatedMember.name} - {translateRelationshipType(item.relationshipType)}
                     </Typography>
                   ))}
                   {selected.familyRelationships.length === 0 && (

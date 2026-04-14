@@ -604,6 +604,25 @@ Agents devem:
 * Não criar código fora da estrutura definida
 * Rodar `npx prisma generate` sempre que atualizar banco
 * Executar testes e lint antes de concluir entrega
+* Aplicar obrigatoriamente o padrão definido em `plans/_Orchestrator.md` para criar, revisar, atualizar e executar qualquer SPEC/PLAN
+
+## Uso obrigatório do Orquestrador de Planos
+
+Arquivo fonte oficial:
+
+```text
+plans/_Orchestrator.md
+```
+
+Regras obrigatórias para todo agent:
+
+1. Sempre ler o orquestrador antes de iniciar qualquer trabalho que envolva SPEC/PLAN.
+2. Toda nova SPEC deve nascer usando o template oficial do orquestrador.
+3. Toda atualização de escopo deve refletir as seções definidas no orquestrador.
+4. Toda entrega deve incluir atualização de `Status de Execucao` e `Checklist de Entrega` na SPEC.
+5. Nenhum agent deve depender de menção manual desse arquivo no prompt para aplicar o padrão.
+
+Se houver conflito entre uma SPEC e este arquivo, prevalece a arquitetura e as regras de qualidade definidas neste `AGENTS.md`, e a SPEC deve ser corrigida.
 
 Checklist mínimo de saída do agent:
 

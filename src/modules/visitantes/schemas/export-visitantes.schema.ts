@@ -1,9 +1,7 @@
 import { z } from "zod"
 
-export const listVisitantesSchema = z
+export const exportVisitantesSchema = z
   .object({
-    page: z.coerce.number().int().min(1).default(1),
-    limit: z.coerce.number().int().min(1).max(50).default(20),
     createdFrom: z.iso.date().optional(),
     createdTo: z.iso.date().optional()
   })
@@ -17,4 +15,4 @@ export const listVisitantesSchema = z
     }
   })
 
-export type ListVisitantesInput = z.infer<typeof listVisitantesSchema>
+export type ExportVisitantesInput = z.infer<typeof exportVisitantesSchema>

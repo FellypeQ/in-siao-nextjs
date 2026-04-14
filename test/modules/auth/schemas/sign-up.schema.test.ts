@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { signUpSchema } from "@/modules/auth/schemas/sign-up.schema"
+import { getPasswordRulesStatus, signUpSchema } from "@/modules/auth/schemas/sign-up.schema"
 
 describe("signUpSchema", () => {
   it("valida payload com senha forte e normaliza email", () => {
@@ -23,5 +23,11 @@ describe("signUpSchema", () => {
     })
 
     expect(result.success).toBe(false)
+  })
+
+  it("expõe status por criterio para feedback visual", () => {
+    const status = getPasswordRulesStatus("Senha@123")
+
+    expect(status.every((item) => item.met)).toBe(true)
   })
 })

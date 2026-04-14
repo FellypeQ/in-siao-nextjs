@@ -36,7 +36,9 @@ export async function GET(request: Request) {
     const url = new URL(request.url)
     const parsed = listVisitantesSchema.safeParse({
       page: url.searchParams.get("page") ?? 1,
-      limit: url.searchParams.get("limit") ?? 20
+      limit: url.searchParams.get("limit") ?? 20,
+      createdFrom: url.searchParams.get("createdFrom") ?? undefined,
+      createdTo: url.searchParams.get("createdTo") ?? undefined
     })
 
     if (!parsed.success) {

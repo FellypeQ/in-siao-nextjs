@@ -16,6 +16,8 @@ import {
 import { useRouter } from "next/navigation"
 import { FormEvent, useMemo, useState } from "react"
 
+import { PasswordRulesChecklist } from "@/frontend/features/auth/components/password-rules-checklist"
+
 type AuthMode = "login" | "cadastro"
 
 type FormValues = {
@@ -211,6 +213,8 @@ export function LoginPageView() {
                 required
                 fullWidth
               />
+
+              {mode === "cadastro" && <PasswordRulesChecklist password={values.senha} />}
 
               {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
               {successMessage && <Alert severity="success">{successMessage}</Alert>}

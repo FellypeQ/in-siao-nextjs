@@ -2,6 +2,9 @@
 
 import DeleteIcon from "@mui/icons-material/Delete"
 import LinkOffIcon from "@mui/icons-material/LinkOff"
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
+import { DatePicker } from "@mui/x-date-pickers/DatePicker"
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
 import {
   actualChurchOptions,
   howKnowOptions,
@@ -24,6 +27,8 @@ import {
   TextField,
   Typography
 } from "@mui/material"
+import dayjs from "dayjs"
+import "dayjs/locale/pt-br"
 import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 
@@ -343,7 +348,8 @@ export function VisitanteForm({ mode, visitanteId }: VisitanteFormProps) {
   }
 
   return (
-    <Stack spacing={2.5}>
+    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-br">
+      <Stack spacing={2.5}>
       <Typography variant="h4" sx={{ fontWeight: 800 }}>
         {formTitle}
       </Typography>
@@ -362,14 +368,18 @@ export function VisitanteForm({ mode, visitanteId }: VisitanteFormProps) {
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 3 }}>
-                <TextField
+                <DatePicker
                   label="Data de nascimento"
-                  type="date"
-                  value={state.birthDate}
-                  onChange={(event) => updateState("birthDate", event.target.value)}
-                  slotProps={{ inputLabel: { shrink: true } }}
-                  required
-                  fullWidth
+                  value={state.birthDate ? dayjs(state.birthDate) : null}
+                  onChange={(value) => updateState("birthDate", value ? value.format("YYYY-MM-DD") : "")}
+                  format="DD/MM/YYYY"
+                  disableFuture
+                  slotProps={{
+                    textField: {
+                      required: true,
+                      fullWidth: true
+                    }
+                  }}
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 3 }}>
@@ -480,16 +490,22 @@ export function VisitanteForm({ mode, visitanteId }: VisitanteFormProps) {
                         />
                       </Grid>
                       <Grid size={{ xs: 12, md: 3 }}>
-                        <TextField
+                        <DatePicker
                           label="Data de nascimento"
-                          type="date"
-                          value={member.birthDate}
-                          onChange={(event) =>
-                            updateFamily(member.localId, { birthDate: event.target.value })
+                          value={member.birthDate ? dayjs(member.birthDate) : null}
+                          onChange={(value) =>
+                            updateFamily(member.localId, {
+                              birthDate: value ? value.format("YYYY-MM-DD") : ""
+                            })
                           }
-                          slotProps={{ inputLabel: { shrink: true } }}
-                          required
-                          fullWidth
+                          format="DD/MM/YYYY"
+                          disableFuture
+                          slotProps={{
+                            textField: {
+                              required: true,
+                              fullWidth: true
+                            }
+                          }}
                         />
                       </Grid>
                       <Grid size={{ xs: 12, md: 3 }}>
@@ -594,6 +610,7 @@ export function VisitanteForm({ mode, visitanteId }: VisitanteFormProps) {
           </Stack>
         </CardContent>
       </Card>
-    </Stack>
+      </Stack>
+    </LocalizationProvider>
   )
 }

@@ -1,5 +1,8 @@
 "use client"
 
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
+import { DatePicker } from "@mui/x-date-pickers/DatePicker"
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
 import {
   Box,
   Button,
@@ -20,6 +23,9 @@ import {
   translateHowKnow,
   translateRelationshipType
 } from "@/frontend/features/visitantes/constants/visitante-enum-translations"
+import { ExportVisitantesButton } from "@/frontend/features/visitantes/components/export-visitantes-button"
+import dayjs from "dayjs"
+import "dayjs/locale/pt-br"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
@@ -61,9 +67,26 @@ type VisitanteDetail = {
   }>
 }
 
-function formatDate(date: string) {
+function formatCivilDate(date: string) {
+  const isoDate = date.slice(0, 10)
+  const [yearRaw, monthRaw, dayRaw] = isoDate.split("-")
+  const year = Number(yearRaw)
+  const month = Number(monthRaw)
+  const day = Number(dayRaw)
+
+  if (!year || !month || !day) {
+    return "Data invalida"
+  }
+
   return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short"
+    timeZone: "UTC"
+  }).format(new Date(Date.UTC(year, month - 1, day)))
+}
+
+function formatDateTime(date: string) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short"
   }).format(new Date(date))
 }
 
@@ -77,6 +100,10 @@ export function VisitantesList() {
   const [selected, setSelected] = useState<VisitanteDetail | null>(null)
   const [modalLoading, setModalLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
+  const [draftCreatedFrom, setDraftCreatedFrom] = useState("")
+  const [draftCreatedTo, setDraftCreatedTo] = useState("")
+  const [appliedCreatedFrom, setAppliedCreatedFrom] = useState("")
+  const [appliedCreatedTo, setAppliedCreatedTo] = useState("")
 
   useEffect(() => {
     async function loadPage() {
@@ -84,7 +111,20 @@ export function VisitantesList() {
         setLoading(true)
         setErrorMessage("")
 
-        const response = await fetch(`/api/visitantes?page=${page}&limit=20`)
+        const params = new URLSearchParams({
+          page: String(page),
+          limit: "20"
+        })
+
+        if (appliedCreatedFrom) {
+          params.set("createdFrom", appliedCreatedFrom)
+        }
+
+        if (appliedCreatedTo) {
+          params.set("createdTo", appliedCreatedTo)
+        }
+
+        const response = await fetch(`/api/visitantes?${params.toString()}`)
         const result = (await response.json()) as {
           success: boolean
           items?: VisitanteListItem[]
@@ -106,7 +146,19 @@ export function VisitantesList() {
     }
 
     void loadPage()
-  }, [page])
+  }, [page, appliedCreatedFrom, appliedCreatedTo])
+
+  function handleApplyFilters() {
+    if (draftCreatedFrom && draftCreatedTo && draftCreatedFrom > draftCreatedTo) {
+      setErrorMessage("Periodo invalido: a data inicial deve ser menor ou igual a final")
+      return
+    }
+
+    setErrorMessage("")
+    setPage(1)
+    setAppliedCreatedFrom(draftCreatedFrom)
+    setAppliedCreatedTo(draftCreatedTo)
+  }
 
   async function handleOpenDetail(id: string) {
     try {
@@ -134,14 +186,49 @@ export function VisitantesList() {
   }
 
   return (
-    <Stack spacing={2.5}>
+    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-br">
+      <Stack spacing={2.5}>
       <Box sx={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 1.5 }}>
         <Typography variant="h4" sx={{ fontWeight: 800 }}>
           Visitantes
         </Typography>
-        <Button variant="contained" onClick={() => router.push("/visitantes/novo")}>
-          Cadastrar visitante
-        </Button>
+        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center" }}>
+          <DatePicker
+            label="Cadastro de"
+            value={draftCreatedFrom ? dayjs(draftCreatedFrom) : null}
+            onChange={(value) => setDraftCreatedFrom(value ? value.format("YYYY-MM-DD") : "")}
+            format="DD/MM/YYYY"
+            slotProps={{
+              textField: {
+                size: "small",
+                sx: { width: 150 }
+              }
+            }}
+          />
+          <DatePicker
+            label="Cadastro ate"
+            value={draftCreatedTo ? dayjs(draftCreatedTo) : null}
+            onChange={(value) => setDraftCreatedTo(value ? value.format("YYYY-MM-DD") : "")}
+            format="DD/MM/YYYY"
+            slotProps={{
+              textField: {
+                size: "small",
+                sx: { width: 150 }
+              }
+            }}
+          />
+          <Button variant="outlined" onClick={handleApplyFilters}>
+            Filtrar
+          </Button>
+          <ExportVisitantesButton
+            onError={setErrorMessage}
+            createdFrom={appliedCreatedFrom || undefined}
+            createdTo={appliedCreatedTo || undefined}
+          />
+          <Button variant="contained" onClick={() => router.push("/visitantes/novo")}>
+            Cadastrar visitante
+          </Button>
+        </Box>
       </Box>
 
       {errorMessage && (
@@ -172,7 +259,7 @@ export function VisitantesList() {
                       {item.name}
                     </Typography>
                     <Typography color="text.secondary" variant="body2">
-                      Nascimento: {formatDate(item.birthDate)}
+                      Nascimento: {formatCivilDate(item.birthDate)}
                     </Typography>
                     <Typography color="text.secondary" variant="body2">
                       Telefone: {item.phone ?? "Nao informado"}
@@ -180,7 +267,7 @@ export function VisitantesList() {
                   </Box>
 
                   <Typography color="text.secondary" variant="body2">
-                    Cadastro: {formatDate(item.createdAt)}
+                    Cadastro: {formatDateTime(item.createdAt)}
                   </Typography>
                 </CardContent>
               </CardActionArea>
@@ -218,7 +305,7 @@ export function VisitantesList() {
                 <strong>Nome:</strong> {selected.member.name}
               </Typography>
               <Typography>
-                <strong>Data de nascimento:</strong> {formatDate(selected.member.birthDate)}
+                <strong>Data de nascimento:</strong> {formatCivilDate(selected.member.birthDate)}
               </Typography>
               <Typography>
                 <strong>Telefone:</strong> {selected.member.phone ?? "Nao informado"}
@@ -288,6 +375,7 @@ export function VisitantesList() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Stack>
+      </Stack>
+    </LocalizationProvider>
   )
 }

@@ -1,6 +1,29 @@
 import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import type { ReactNode } from "react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
+
+vi.mock("@mui/x-date-pickers/LocalizationProvider", () => ({
+  LocalizationProvider: ({ children }: { children: ReactNode }) => children
+}))
+
+vi.mock("@mui/x-date-pickers/AdapterDayjs", () => ({
+  AdapterDayjs: function AdapterDayjs() {
+    return null
+  }
+}))
+
+vi.mock("@mui/x-date-pickers/DatePicker", () => ({
+  DatePicker: ({ label, onChange }: { label: string; onChange: (value: { format: (token: string) => string }) => void }) => (
+    <input
+      aria-label={label}
+      onChange={(event) => {
+        const target = event.target as HTMLInputElement
+        onChange({ format: () => target.value })
+      }}
+    />
+  )
+}))
 
 import { VisitantesList } from "@/frontend/features/visitantes/components/visitantes-list"
 
@@ -92,6 +115,40 @@ describe("VisitantesList", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Detalhes do visitante")).toBeInTheDocument()
+    })
+  })
+
+  it("aplica filtro e busca visitantes com periodo", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, items: [], totalPages: 1 })
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, items: [], totalPages: 1 })
+      })
+
+    vi.stubGlobal("fetch", fetchMock)
+
+    const user = userEvent.setup()
+
+    render(<VisitantesList />)
+
+    const fromInput = await screen.findByLabelText("Cadastro de")
+    const toInput = screen.getByLabelText("Cadastro ate")
+
+    await user.type(fromInput, "2026-04-01")
+    await user.type(toInput, "2026-04-14")
+
+    await user.click(screen.getByRole("button", { name: "Filtrar" }))
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenNthCalledWith(
+        2,
+        "/api/visitantes?page=1&limit=20&createdFrom=2026-04-01&createdTo=2026-04-14"
+      )
     })
   })
 })

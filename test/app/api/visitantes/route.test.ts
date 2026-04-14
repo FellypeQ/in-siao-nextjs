@@ -50,11 +50,21 @@ describe("/api/visitantes route", () => {
       totalPages: 0
     })
 
-    const response = await GET(new Request("http://localhost/api/visitantes?page=1&limit=20"))
+    const response = await GET(
+      new Request(
+        "http://localhost/api/visitantes?page=1&limit=20&createdFrom=2026-04-01&createdTo=2026-04-14"
+      )
+    )
     const body = (await response.json()) as { success: boolean; items: unknown[] }
 
     expect(response.status).toBe(200)
     expect(body.success).toBe(true)
     expect(body.items).toEqual([])
+    expect(listVisitantesServiceMock).toHaveBeenCalledWith({
+      page: 1,
+      limit: 20,
+      createdFrom: "2026-04-01",
+      createdTo: "2026-04-14"
+    })
   })
 })

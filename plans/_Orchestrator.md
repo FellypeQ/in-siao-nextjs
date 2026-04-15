@@ -113,6 +113,14 @@ Se houver mudanca de banco, seguir esta ordem obrigatoria:
 
 > Atencao: `npx prisma generate` apenas atualiza o client TypeScript. Sem aplicar a migration (`migrate deploy` ou `migrate dev`), o banco fisico fica desatualizado em relacao ao schema, causando erros silenciosos de banco (`INTERNAL_SERVER_ERROR`) em producao e desenvolvimento.
 
+Regras operacionais adicionais de banco (aprendizados 004/005/006):
+
+- evitar `prisma migrate reset` como estrategia padrao de correcoes; priorizar migration corretiva incremental
+- reset so pode ocorrer com aprovacao explicita por risco de perda de dados
+- apos qualquer mudanca de schema em desenvolvimento, validar `prisma migrate status`
+- entrega com alteracao de banco so fecha com banco disponivel e sem drift
+- em caso excepcional de reset em dev, executar bootstrap/seed de ADMIN imediatamente
+
 ---
 
 ## 6. Politica de testes por camada
@@ -126,6 +134,12 @@ Toda SPEC que gera/edita codigo deve declarar testes minimos:
 - UI: renderizacao e comportamento critico
 
 Entrega nao e considerada pronta sem cobertura coerente com o que foi alterado.
+
+Regras adicionais para mudancas de autorizacao/permissao:
+
+- ao adicionar guard em endpoint existente, atualizar os testes de rota no mesmo PR
+- mocks de sessao em testes devem refletir payload real (incluindo `permissions` quando aplicavel)
+- quando houver mudanca de contrato HTTP (metodo/rota), atualizar testes de contrato na mesma fatia
 
 ---
 
@@ -148,12 +162,15 @@ Entrega nao e considerada pronta sem cobertura coerente com o que foi alterado.
 1. Implementar por fatias pequenas (schema -> repository -> service -> controller -> UI)
 2. Atualizar status da SPEC conforme progresso
 3. Rodar testes e lint no fim de cada fatia relevante
+4. Se houver evolucao de token/sessao, garantir compatibilidade retroativa (fallback seguro para payload legado)
+5. Em features de permissionamento, aplicar autorizacao em duas camadas: UI condicional + bloqueio server-side
 
 ### Etapa D - Fechamento
 
 1. Revisar checklist de saida
 2. Marcar decisoes finais
 3. Registrar pendencias para proxima SPEC (se houver)
+4. Registrar aprendizados operacionais da entrega (pos-mortem curto) na SPEC
 
 ---
 
@@ -259,8 +276,23 @@ Antes de iniciar implementacao, validar:
 - ha impacto de banco? se sim, migration + prisma generate foram previstos?
 - a estrutura proposta respeita modules/services/repositories?
 - existe estrategia de testes compativel com a entrega?
+- a SPEC esta alinhada com os metodos/rotas reais existentes no codigo atual?
+- se houver auth/sessao/permissao, a entrega cobre UI condicional e guard na API?
+- se houver mudanca no payload de sessao, existe estrategia de compatibilidade retroativa?
 
 Se qualquer resposta for `nao`, ajustar a SPEC antes de codar.
+
+---
+
+## 12. Aprendizados consolidados (SPEC 004, 005 e 006)
+
+1. Migration criada nao garante banco atualizado: confirmar aplicacao da migration e sincronia client/schema antes de validar a feature.
+2. Resolver drift com reset nao e caminho padrao: priorizar migration corretiva incremental para preservar dados.
+3. Sessao assinada isoladamente nao e suficiente: rotas protegidas devem validar usuario ativo no banco.
+4. Mudancas no payload de sessao exigem fallback para tokens legados durante rollout.
+5. Permissionamento robusto depende de duas camadas: ocultacao de UI para UX e guard server-side para seguranca.
+6. Ao introduzir guard em endpoint ja existente, atualizar testes de rota no mesmo ciclo para evitar regressao.
+7. Fechamento de SPEC com banco deve sempre validar disponibilidade do banco, status de migration e smoke test de rotas criticas.
 
 ---
 

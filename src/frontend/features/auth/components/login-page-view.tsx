@@ -11,8 +11,8 @@ import {
   TextField,
   Typography
 } from "@mui/material"
-import { useRouter, useSearchParams } from "next/navigation"
-import { FormEvent, useState } from "react"
+import { useRouter } from "next/navigation"
+import { FormEvent, useEffect, useState } from "react"
 
 type FormValues = {
   email: string
@@ -26,12 +26,15 @@ const initialValues: FormValues = {
 
 export function LoginPageView() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [values, setValues] = useState<FormValues>(initialValues)
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
+  const [inviteSignUpSuccess, setInviteSignUpSuccess] = useState(false)
 
-  const inviteSignUpSuccess = searchParams.get("status") === "invite-sign-up-success"
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    setInviteSignUpSuccess(params.get("status") === "invite-sign-up-success")
+  }, [])
 
   function updateValue<K extends keyof FormValues>(key: K, value: FormValues[K]) {
     setValues((current) => ({

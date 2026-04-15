@@ -6,6 +6,10 @@ import HomeIcon from "@mui/icons-material/Home";
 import GroupAddIcon from "@mui/icons-material/GroupAdd";
 import GroupsIcon from "@mui/icons-material/Groups";
 import {
+  Permission,
+  type PermissionKey,
+} from "@/shared/constants/permissions";
+import {
   AppBar,
   Avatar,
   Box,
@@ -31,6 +35,7 @@ type AuthenticatedShellProps = {
     nome: string;
     email: string;
     role: "ADMIN" | "STAFF";
+    permissions?: string[];
   };
   children: React.ReactNode;
 };
@@ -51,6 +56,22 @@ export function AuthenticatedShell({
     router.refresh();
   }
 
+  function hasPermission(permission: PermissionKey): boolean {
+    if (user.role === "ADMIN") {
+      return true;
+    }
+
+    return user.permissions?.includes(permission) ?? false;
+  }
+
+  const canOpenVisitantesModule =
+    user.role === "ADMIN" ||
+    hasPermission(Permission.VISITANTES_LISTAR) ||
+    hasPermission(Permission.VISITANTES_CADASTRAR) ||
+    hasPermission(Permission.VISITANTES_EDITAR) ||
+    hasPermission(Permission.VISITANTES_EXCLUIR) ||
+    hasPermission(Permission.VISITANTES_EXPORTAR);
+
   const drawerContent = (
     <Box sx={{ pt: 2 }}>
       <Typography variant="h6" sx={{ px: 2, mb: 1 }}>
@@ -69,18 +90,20 @@ export function AuthenticatedShell({
             <ListItemText primary="Home" />
           </ListItemButton>
         </ListItem>
-        <ListItem disablePadding>
-          <ListItemButton
-            component={Link}
-            href="/visitantes"
-            onClick={() => setMobileOpen(false)}
-          >
-            <ListItemIcon sx={{ color: "inherit" }}>
-              <GroupAddIcon />
-            </ListItemIcon>
-            <ListItemText primary="Visitantes" />
-          </ListItemButton>
-        </ListItem>
+        {canOpenVisitantesModule && (
+          <ListItem disablePadding>
+            <ListItemButton
+              component={Link}
+              href="/visitantes"
+              onClick={() => setMobileOpen(false)}
+            >
+              <ListItemIcon sx={{ color: "inherit" }}>
+                <GroupAddIcon />
+              </ListItemIcon>
+              <ListItemText primary="Visitantes" />
+            </ListItemButton>
+          </ListItem>
+        )}
         {user.role === "ADMIN" && (
           <ListItem disablePadding>
             <ListItemButton

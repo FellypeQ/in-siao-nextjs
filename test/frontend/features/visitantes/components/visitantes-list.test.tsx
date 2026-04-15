@@ -52,7 +52,17 @@ describe("VisitantesList", () => {
 
     const user = userEvent.setup()
 
-    render(<VisitantesList />)
+    render(
+      <VisitantesList
+        role="STAFF"
+        permissions={[
+          "VISITANTES_LISTAR",
+          "VISITANTES_CADASTRAR",
+          "VISITANTES_EDITAR",
+          "VISITANTES_EXPORTAR"
+        ]}
+      />
+    )
 
     expect(await screen.findByText("Visitantes")).toBeInTheDocument()
 
@@ -109,7 +119,17 @@ describe("VisitantesList", () => {
 
     const user = userEvent.setup()
 
-    render(<VisitantesList />)
+    render(
+      <VisitantesList
+        role="STAFF"
+        permissions={[
+          "VISITANTES_LISTAR",
+          "VISITANTES_CADASTRAR",
+          "VISITANTES_EDITAR",
+          "VISITANTES_EXPORTAR"
+        ]}
+      />
+    )
 
     await user.click(await screen.findByText("Visitante Um"))
 
@@ -134,7 +154,17 @@ describe("VisitantesList", () => {
 
     const user = userEvent.setup()
 
-    render(<VisitantesList />)
+    render(
+      <VisitantesList
+        role="STAFF"
+        permissions={[
+          "VISITANTES_LISTAR",
+          "VISITANTES_CADASTRAR",
+          "VISITANTES_EDITAR",
+          "VISITANTES_EXPORTAR"
+        ]}
+      />
+    )
 
     const fromInput = await screen.findByLabelText("Cadastro de")
     const toInput = screen.getByLabelText("Cadastro ate")

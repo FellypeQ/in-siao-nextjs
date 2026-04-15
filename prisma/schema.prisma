@@ -64,6 +64,7 @@ model User {
   updatedAt          DateTime     @updatedAt
   invitesCreated     UserInvite[] @relation("InviteCreatedBy")
   inviteUsed         UserInvite?  @relation("InviteUsedBy")
+  permissions        UserPermission[]
 
   @@map("users")
 }
@@ -81,6 +82,17 @@ model UserInvite {
   usedBy    User? @relation("InviteUsedBy", fields: [usedById], references: [id])
 
   @@map("user_invites")
+}
+
+model UserPermission {
+  userId     String
+  permission String
+  grantedAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, permission])
+  @@map("user_permissions")
 }
 
 model Member {

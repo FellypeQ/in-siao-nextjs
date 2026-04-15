@@ -1,11 +1,20 @@
+import { requireAuthSessionForApi } from "@/lib/require-auth-session"
 import { createVisitanteSchema } from "@/modules/visitantes/schemas/create-visitante.schema"
 import { listVisitantesSchema } from "@/modules/visitantes/schemas/list-visitantes.schema"
 import { createVisitanteService } from "@/modules/visitantes/services/create-visitante.service"
 import { listVisitantesService } from "@/modules/visitantes/services/list-visitantes.service"
-import { toErrorResponse } from "@/shared/errors/app-error"
+import { Permission } from "@/shared/constants/permissions"
+import { AppError, toErrorResponse } from "@/shared/errors/app-error"
+import { hasPermission } from "@/shared/utils/require-permission"
 
 export async function POST(request: Request) {
   try {
+    const session = await requireAuthSessionForApi()
+
+    if (!hasPermission(session, Permission.VISITANTES_CADASTRAR)) {
+      throw new AppError("Sem permissao para cadastrar visitantes", 403, "FORBIDDEN")
+    }
+
     const body = await request.json()
     const parsed = createVisitanteSchema.safeParse(body)
 
@@ -33,6 +42,12 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
+    const session = await requireAuthSessionForApi()
+
+    if (!hasPermission(session, Permission.VISITANTES_LISTAR)) {
+      throw new AppError("Sem permissao para listar visitantes", 403, "FORBIDDEN")
+    }
+
     const url = new URL(request.url)
     const parsed = listVisitantesSchema.safeParse({
       page: url.searchParams.get("page") ?? 1,

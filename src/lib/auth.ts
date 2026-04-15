@@ -10,6 +10,7 @@ export type SessionPayload = {
   nome: string;
   email: string;
   role: SessionRole;
+  permissions: string[];
   iat: number;
   exp: number;
 };
@@ -19,6 +20,7 @@ type SessionUser = {
   nome: string;
   email: string;
   role: SessionRole;
+  permissions: string[];
 };
 
 function getAuthSecret(): string {
@@ -76,6 +78,7 @@ export async function createSessionToken(user: SessionUser): Promise<string> {
     nome: user.nome,
     email: user.email,
     role: user.role,
+    permissions: user.permissions,
     iat: now,
     exp: now + SESSION_MAX_AGE_SECONDS,
   };
@@ -109,6 +112,10 @@ export async function verifySessionToken(
 
     if (!payload.exp || payload.exp < Math.floor(Date.now() / 1000)) {
       return null;
+    }
+
+    if (!Array.isArray(payload.permissions)) {
+      payload.permissions = [];
     }
 
     return payload;

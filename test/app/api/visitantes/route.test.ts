@@ -5,6 +5,16 @@ import { GET, POST } from "@/app/api/visitantes/route"
 const createVisitanteServiceMock = vi.fn()
 const listVisitantesServiceMock = vi.fn()
 
+vi.mock("@/lib/require-auth-session", () => ({
+  requireAuthSessionForApi: vi.fn().mockResolvedValue({
+    sub: "user-1",
+    role: "STAFF",
+    permissions: ["VISITANTES_CADASTRAR", "VISITANTES_LISTAR"],
+    nome: "Usuario Teste",
+    email: "usuario@teste.com"
+  })
+}))
+
 vi.mock("@/modules/visitantes/services/create-visitante.service", () => ({
   createVisitanteService: (input: unknown) => createVisitanteServiceMock(input)
 }))

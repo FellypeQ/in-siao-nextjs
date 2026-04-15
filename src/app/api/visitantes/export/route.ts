@@ -1,41 +1,16 @@
-import { cookies } from "next/headers"
-
-import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/auth"
+import { requireAuthSessionForApi } from "@/lib/require-auth-session"
 import { exportVisitantesSchema } from "@/modules/visitantes/schemas/export-visitantes.schema"
 import { exportVisitantesExcelService } from "@/modules/visitantes/services/export-visitantes-excel.service"
-import { toErrorResponse } from "@/shared/errors/app-error"
+import { Permission } from "@/shared/constants/permissions"
+import { AppError, toErrorResponse } from "@/shared/errors/app-error"
+import { hasPermission } from "@/shared/utils/require-permission"
 
 export async function GET(request: Request) {
   try {
-    const cookieStore = await cookies()
-    const token = cookieStore.get(SESSION_COOKIE_NAME)?.value
+    const session = await requireAuthSessionForApi()
 
-    if (!token) {
-      return Response.json(
-        {
-          success: false,
-          error: {
-            code: "UNAUTHORIZED",
-            message: "Sessao invalida"
-          }
-        },
-        { status: 401 }
-      )
-    }
-
-    const session = await verifySessionToken(token)
-
-    if (!session) {
-      return Response.json(
-        {
-          success: false,
-          error: {
-            code: "UNAUTHORIZED",
-            message: "Sessao invalida"
-          }
-        },
-        { status: 401 }
-      )
+    if (!hasPermission(session, Permission.VISITANTES_EXPORTAR)) {
+      throw new AppError("Sem permissao para exportar visitantes", 403, "FORBIDDEN")
     }
 
     const url = new URL(request.url)

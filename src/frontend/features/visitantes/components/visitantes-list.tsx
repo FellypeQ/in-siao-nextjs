@@ -24,6 +24,8 @@ import {
   translateRelationshipType
 } from "@/frontend/features/visitantes/constants/visitante-enum-translations"
 import { ExportVisitantesButton } from "@/frontend/features/visitantes/components/export-visitantes-button"
+import { usePermissions } from "@/frontend/shared/hooks/use-permissions"
+import { Permission } from "@/shared/constants/permissions"
 import dayjs from "dayjs"
 import "dayjs/locale/pt-br"
 import { useRouter } from "next/navigation"
@@ -90,8 +92,14 @@ function formatDateTime(date: string) {
   }).format(new Date(date))
 }
 
-export function VisitantesList() {
+type VisitantesListProps = {
+  role: "ADMIN" | "STAFF"
+  permissions: string[]
+}
+
+export function VisitantesList({ role, permissions }: VisitantesListProps) {
   const router = useRouter()
+  const { can } = usePermissions({ role, permissions })
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
   const [items, setItems] = useState<VisitanteListItem[]>([])
@@ -104,6 +112,9 @@ export function VisitantesList() {
   const [draftCreatedTo, setDraftCreatedTo] = useState("")
   const [appliedCreatedFrom, setAppliedCreatedFrom] = useState("")
   const [appliedCreatedTo, setAppliedCreatedTo] = useState("")
+  const canExportVisitantes = can(Permission.VISITANTES_EXPORTAR)
+  const canCreateVisitante = can(Permission.VISITANTES_CADASTRAR)
+  const canEditVisitante = can(Permission.VISITANTES_EDITAR)
 
   useEffect(() => {
     async function loadPage() {
@@ -220,14 +231,18 @@ export function VisitantesList() {
           <Button variant="outlined" onClick={handleApplyFilters}>
             Filtrar
           </Button>
-          <ExportVisitantesButton
-            onError={setErrorMessage}
-            createdFrom={appliedCreatedFrom || undefined}
-            createdTo={appliedCreatedTo || undefined}
-          />
-          <Button variant="contained" onClick={() => router.push("/visitantes/novo")}>
-            Cadastrar visitante
-          </Button>
+          {canExportVisitantes && (
+            <ExportVisitantesButton
+              onError={setErrorMessage}
+              createdFrom={appliedCreatedFrom || undefined}
+              createdTo={appliedCreatedTo || undefined}
+            />
+          )}
+          {canCreateVisitante && (
+            <Button variant="contained" onClick={() => router.push("/visitantes/novo")}>
+              Cadastrar visitante
+            </Button>
+          )}
         </Box>
       </Box>
 
@@ -360,19 +375,21 @@ export function VisitantesList() {
           >
             Fechar
           </Button>
-          <Button
-            variant="contained"
-            disabled={!selectedId}
-            onClick={() => {
-              if (!selectedId) {
-                return
-              }
+          {canEditVisitante && (
+            <Button
+              variant="contained"
+              disabled={!selectedId}
+              onClick={() => {
+                if (!selectedId) {
+                  return
+                }
 
-              router.push(`/visitantes/${selectedId}/editar`)
-            }}
-          >
-            Editar
-          </Button>
+                router.push(`/visitantes/${selectedId}/editar`)
+              }}
+            >
+              Editar
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
       </Stack>

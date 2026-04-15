@@ -1,13 +1,13 @@
-export type SessionRole = "ADMIN"
+export type SessionRole = "ADMIN" | "STAFF";
 
 export type PublicUser = {
-  id: string
-  nome: string
-  email: string
-  role: SessionRole
-}
+  id: string;
+  nome: string;
+  email: string;
+  role: SessionRole;
+};
 
 export type SignInResult = {
-  token: string
-  user: PublicUser
-}
+  token: string;
+  user: PublicUser;
+};

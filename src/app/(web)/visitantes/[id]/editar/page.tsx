@@ -1,18 +1,22 @@
-import { AuthenticatedShell } from "@/frontend/components/layout/authenticated-shell"
-import { VisitanteForm } from "@/frontend/features/visitantes/components/visitante-form"
-import { requireAuthSession } from "@/lib/require-auth-session"
+import { AuthenticatedShell } from "@/frontend/components/layout/authenticated-shell";
+import { VisitanteForm } from "@/frontend/features/visitantes/components/visitante-form";
+import { requireAuthSession } from "@/lib/require-auth-session";
 
 type EditarVisitantePageProps = {
-  params: Promise<{ id: string }>
-}
+  params: Promise<{ id: string }>;
+};
 
-export default async function EditarVisitantePage({ params }: EditarVisitantePageProps) {
-  const session = await requireAuthSession()
-  const { id } = await params
+export default async function EditarVisitantePage({
+  params,
+}: EditarVisitantePageProps) {
+  const session = await requireAuthSession();
+  const { id } = await params;
 
   return (
-    <AuthenticatedShell user={{ nome: session.nome, email: session.email }}>
+    <AuthenticatedShell
+      user={{ nome: session.nome, email: session.email, role: session.role }}
+    >
       <VisitanteForm mode="edit" visitanteId={id} />
     </AuthenticatedShell>
-  )
+  );
 }

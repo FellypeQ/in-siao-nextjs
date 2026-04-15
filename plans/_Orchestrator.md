@@ -103,11 +103,15 @@ Toda SPEC deve respeitar:
 - TypeScript sem `any`
 - uso de MUI para UI
 
-Se houver mudanca de banco:
+Se houver mudanca de banco, seguir esta ordem obrigatoria:
 
-- atualizar `prisma/schema.prisma`
-- criar migration
-- executar obrigatoriamente `npx prisma generate`
+1. Atualizar `prisma/schema.prisma`
+2. Criar migration: `npx prisma migrate dev --name <descricao>`
+3. **Aplicar a migration ao banco**: `npx prisma migrate deploy` (producao) ou confirmar no `migrate dev`
+4. Executar `npx prisma generate`
+5. Reiniciar o servidor de desenvolvimento (`next dev`) para garantir que o novo Prisma Client seja carregado
+
+> Atencao: `npx prisma generate` apenas atualiza o client TypeScript. Sem aplicar a migration (`migrate deploy` ou `migrate dev`), o banco fisico fica desatualizado em relacao ao schema, causando erros silenciosos de banco (`INTERNAL_SERVER_ERROR`) em producao e desenvolvimento.
 
 ---
 

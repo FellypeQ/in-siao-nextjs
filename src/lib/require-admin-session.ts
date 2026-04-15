@@ -34,6 +34,7 @@ export async function requireAdminSession() {
     nome: currentUser.nome,
     email: currentUser.email,
     role: currentUser.role,
+    permissions: session.permissions,
   };
 }
 
@@ -66,5 +67,6 @@ export async function requireAdminSessionForApi() {
     nome: currentUser.nome,
     email: currentUser.email,
     role: currentUser.role,
+    permissions: session.permissions,
   };
 }

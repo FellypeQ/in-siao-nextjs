@@ -7,7 +7,12 @@ export default async function UsuariosPage() {
 
   return (
     <AuthenticatedShell
-      user={{ nome: session.nome, email: session.email, role: session.role }}
+      user={{
+        nome: session.nome,
+        email: session.email,
+        role: session.role,
+        permissions: session.permissions,
+      }}
     >
       <UsuariosTable currentUserId={session.sub} />
     </AuthenticatedShell>

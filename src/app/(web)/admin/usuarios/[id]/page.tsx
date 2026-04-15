@@ -14,7 +14,12 @@ export default async function UsuarioDetailPage({
 
   return (
     <AuthenticatedShell
-      user={{ nome: session.nome, email: session.email, role: session.role }}
+      user={{
+        nome: session.nome,
+        email: session.email,
+        role: session.role,
+        permissions: session.permissions,
+      }}
     >
       <UsuarioDetail usuarioId={id} />
     </AuthenticatedShell>

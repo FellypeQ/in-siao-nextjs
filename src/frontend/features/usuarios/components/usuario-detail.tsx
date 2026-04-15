@@ -1,6 +1,6 @@
 "use client";
 
-import { PermissionsPlaceholder } from "@/frontend/features/usuarios/components/permissions-placeholder";
+import { UserPermissionsForm } from "@/frontend/features/usuarios/components/user-permissions-form";
 import {
   Alert,
   Box,
@@ -124,7 +124,7 @@ export function UsuarioDetail({ usuarioId }: UsuarioDetailProps) {
               </Typography>
             )}
 
-            <PermissionsPlaceholder />
+            <UserPermissionsForm usuarioId={usuario.id} readOnly />
 
             <Stack direction="row" spacing={1.5} sx={{ pt: 1 }}>
               <Button

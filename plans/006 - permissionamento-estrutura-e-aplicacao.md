@@ -4,6 +4,8 @@
 
 O sistema possui usuarios com roles (`ADMIN`, `STAFF`) mas nenhum controle granular de acesso. Com multiplos usuarios no sistema, e necessario definir quais acoes cada usuario pode executar. Esta SPEC cria a infraestrutura de permissoes e a aplica nas features ja existentes (visitantes e culto infantil), garantindo que o controle ocorra tanto na UI (exibicao condicional) quanto na API (bloqueio de acoes nao autorizadas).
 
+Esta SPEC tambem incorpora os aprendizados operacionais das SPECs 004 e 005: sincronizar migration aplicada com Prisma Client gerado, reforcar validacao de sessao contra usuario ativo no banco e executar mudancas de schema sem resetar banco para nao perder dados.
+
 **Dependencias:**
 - SPEC 004: modelo `User` com role `ADMIN`/`STAFF`, tela de edicao de usuario (secao de permissoes sera preenchida aqui)
 - SPEC 005: usuarios criados via convite ja chegam com role definida; permissoes sao atribuidas manualmente pelo admin apos criacao
@@ -66,6 +68,10 @@ Garantir que cada usuario acesse somente as funcionalidades para as quais foi au
 - **RNF-03** Se permissoes forem alteradas pelo admin, o usuario afetado precisara fazer novo login para ver as mudancas — comportamento aceitavel e deve ser documentado na UI
 - **RNF-04** O enum de permissoes deve ser definido em TypeScript (`as const`) para permitir uso como tipo e como valor, sem criar enum no banco
 - **RNF-05** O guard de permissao deve ser uma funcao pura reutilizavel por qualquer controller
+- **RNF-06** Alteracoes de banco devem ser feitas com migrations incrementais e aplicadas sem reset; os dados atuais devem ser preservados
+- **RNF-07** `npx prisma migrate reset` e proibido neste fluxo, exceto em cenario explicitamente aprovado fora desta SPEC
+- **RNF-08** O banco deve permanecer disponivel apos a entrega; validar estado de migration aplicado e sincronia de schema/client antes de concluir
+- **RNF-09** Validacao de sessao para endpoints protegidos deve continuar consultando usuario ativo no banco (evitar sessao orfa apos mudancas de dados)
 
 ## 6. Modelagem de Dados
 
@@ -130,11 +136,23 @@ Usuario faz login
 ```
 Request chega em /api/visitantes
   -> Controller extrai token do cookie
-  -> Verifica sessao (existente e valida)
+  -> Verifica sessao (existente, valida e com usuario ativo no banco)
   -> Se role = ADMIN: permite acao diretamente
   -> Se role = STAFF: verifica se permissions[] contem a permissao necessaria
   -> Se nao contem: retorna 403
   -> Se contem: executa service normalmente
+```
+
+### 7.5 Fluxo operacional de mudanca de banco (sem reset)
+
+```
+Mudanca em prisma/schema.prisma identificada
+  -> Criar migration incremental (forward-only)
+  -> Aplicar migration ao banco (sem reset e sem apagar dados)
+  -> Executar prisma generate
+  -> Reiniciar app para carregar Prisma Client atualizado
+  -> Validar login/admin e endpoints criticos
+  -> Confirmar banco disponivel e sem drift de migration
 ```
 
 ### 7.3 Edicao de permissoes pelo admin
@@ -318,26 +336,34 @@ Regras no service:
 | 4 | Permissoes do ADMIN: nao sao gravadas no banco (role bypassa tudo); `permissions: []` no token para ADMIN e aceitavel | Decidido |
 | 5 | Notificacao ao admin de que permissoes so valem apos re-login do usuario afetado: adicionar texto informativo na UI de edicao | Decidido |
 | 6 | Culto infantil: permissao `CULTO_INFANTIL_SELECIONAR` criada mas endpoint ainda nao existe; guard sera aplicado quando endpoint for criado | Decidido |
+| 7 | Risco de perda de dados ao resolver drift com reset: nao permitido nesta SPEC; adotar apenas migration incremental e corretiva | Decidido |
+| 8 | Risco de banco indisponivel por inconsistencia schema/client: obrigatorio aplicar migration, gerar client e reiniciar app antes de validar entrega | Decidido |
+| 9 | Risco de sessao orfa apos mudancas no banco: manter verificacao de usuario ativo em `require-auth-session` e `require-admin-session` | Decidido |
 
 ## 14. Plano de Implementacao
 
 1. Garantir que SPEC 004 foi implementada (User com role ADMIN/STAFF, tela de edicao)
 2. Criar `src/shared/constants/permissions.ts` com enum de permissoes
 3. Atualizar `prisma/schema.prisma`: adicionar model `UserPermission` e relacao em `User`
-4. Criar migration: `npx prisma migrate dev --name add-user-permissions`
-5. Executar `npx prisma generate`
-6. Atualizar `lib/auth.ts`: adicionar `permissions: string[]` ao `SessionPayload` e `SessionUser`
-7. Criar `user-permission.type.ts`
-8. Criar `update-user-permissions.schema.ts`
-9. Criar repositories: `find-user-permissions-by-user-id`, `replace-user-permissions`
-10. Criar services: `update-user-permissions`, `load-user-permissions`
-11. Modificar `sign-in-auth.service.ts`: carregar permissoes do banco e incluir no token
-12. Criar `src/shared/utils/require-permission.ts` (funcao `hasPermission`)
-13. Aplicar guards em todos os endpoints de visitantes existentes
-14. Criar endpoint `GET /PATCH /api/usuarios/[id]/permissoes`
-15. Criar hook `use-permissions.ts` no frontend
-16. Criar componente `user-permissions-form.tsx` e integrar na tela de edicao de usuario
-17. Aplicar exibicao condicional de botoes/acoes na UI de visitantes baseada nas permissoes
+4. Validar estado atual antes de migrar: `npx prisma migrate status` (sem reset em nenhuma hipotese desta SPEC)
+5. Criar e aplicar migration incremental: `npx prisma migrate dev --name add-user-permissions`
+6. Confirmar migration aplicada sem perda de dados: `npx prisma migrate status`
+7. Executar `npx prisma generate`
+8. Reiniciar servidor Next.js para carregar o Prisma Client atualizado
+9. Atualizar `lib/auth.ts`: adicionar `permissions: string[]` ao `SessionPayload` e `SessionUser`
+10. Criar `user-permission.type.ts`
+11. Criar `update-user-permissions.schema.ts`
+12. Criar repositories: `find-user-permissions-by-user-id`, `replace-user-permissions`
+13. Criar services: `update-user-permissions`, `load-user-permissions`
+14. Modificar `sign-in-auth.service.ts`: carregar permissoes do banco e incluir no token
+15. Garantir uso de validacao de usuario ativo nas rotas protegidas (`require-auth-session` / `require-admin-session`)
+16. Criar `src/shared/utils/require-permission.ts` (funcao `hasPermission`)
+17. Aplicar guards em todos os endpoints de visitantes existentes
+18. Criar endpoint `GET /PATCH /api/usuarios/[id]/permissoes`
+19. Criar hook `use-permissions.ts` no frontend
+20. Criar componente `user-permissions-form.tsx` e integrar na tela de edicao de usuario
+21. Aplicar exibicao condicional de botoes/acoes na UI de visitantes baseada nas permissoes
+22. Validar pos-implantacao local: login, listagem de usuarios e endpoints de visitantes com banco disponivel
 
 ## 15. Estrategia de Testes
 
@@ -350,25 +376,57 @@ Regras no service:
 - **Endpoints de visitantes (guards):** ADMIN acessa todos; STAFF sem permissao recebe 403; STAFF com permissao correta recebe 200
 - **Endpoint permissoes:** ADMIN atualiza com sucesso; nao-ADMIN recebe 403; payload invalido recebe 400
 - **UI:** checkboxes renderizam com estado correto (marcados/desmarcados); botao exportar oculto sem permissao; botao excluir oculto sem permissao
+- **Operacao de banco (sem reset):** validar que dados preexistentes permanecem apos migration e que nao houve necessidade de `migrate reset`
+- **Saude da sessao:** garantir que sessao com usuario inexistente/inativo seja bloqueada corretamente nas rotas protegidas
 
 ---
 
 ## Status de Execucao
 
-- Estado: `Backlog`
-- Responsavel: `<definir>`
-- Ultima atualizacao: `2026-04-14`
+- Estado: `Concluido`
+- Responsavel: `GitHub Copilot`
+- Ultima atualizacao: `2026-04-15`
 
 ### Checklist de Entrega
 
-- [ ] Schema criado/atualizado
-- [ ] Repository criado/atualizado
-- [ ] Service criado/atualizado
-- [ ] Controller/route criado/atualizado
-- [ ] UI criada/atualizada
-- [ ] Migration criada
-- [ ] `npx prisma generate` executado
-- [ ] Testes adicionados/atualizados
-- [ ] Testes passando
-- [ ] Lint sem erro
-- [ ] Criterios de aceite validados
+- [x] Schema criado/atualizado
+- [x] Repository criado/atualizado
+- [x] Service criado/atualizado
+- [x] Controller/route criado/atualizado
+- [x] UI criada/atualizada
+- [x] Migration criada
+- [x] `npx prisma generate` executado
+- [x] Testes adicionados/atualizados
+- [x] Testes passando
+- [x] Lint sem erro
+- [x] Criterios de aceite validados
+
+---
+
+## 16. Aprendizados incorporados (SPEC 004 e SPEC 005)
+
+1. Migration criada nao e suficiente: e obrigatorio confirmar migration aplicada no banco e sincronia com Prisma Client antes de validar feature.
+2. Nao usar reset para resolver drift neste fluxo: drift deve ser tratado com migration corretiva/incremental para preservar dados atuais.
+3. Sessao assinada nao substitui validacao de usuario ativo no banco: rotas protegidas devem continuar validando existencia/estado do usuario.
+4. Pos-mudanca de schema, reiniciar servidor reduz risco de cliente Prisma desatualizado em memoria.
+5. Entrega de SPEC com alteracao de banco so fecha com banco disponivel, login funcional e endpoints criticos verificados.
+
+---
+
+## 17. Pos-mortem da execucao (SPEC 006)
+
+### O que aprendemos nesta entrega
+
+1. Ao introduzir guard de permissao em endpoints existentes, os testes de rota quebram rapidamente se a sessao nao for mockada com `permissions`; atualizar os mocks na mesma fatia reduz retrabalho.
+2. Alinhar SPEC e codigo real evita regressao: no modulo de visitantes, foi necessario cobrir `PUT` (existente), adicionar `PATCH` (compatibilidade com SPEC) e incluir `DELETE` para fechar o contrato esperado.
+3. Evolucao de token exige compatibilidade retroativa: validar `permissions` como array e aplicar fallback para `[]` evita quebra de sessoes antigas durante rollout.
+4. Esconder a acao na UI melhora UX, mas nao substitui bloqueio de API; a seguranca correta veio da combinacao `UI condicional + guard server-side`.
+5. O fluxo de banco sem reset funcionou como esperado com migration incremental + `prisma generate` + validacao de status, preservando dados e disponibilidade do banco.
+
+### Acoes preventivas para proximas SPECs
+
+1. Sempre que adicionar guard em API, atualizar imediatamente os testes de rota para mockar autenticacao e permissoes.
+2. Conferir contratos HTTP reais antes de aplicar tabela da SPEC, registrando explicitamente qualquer adaptacao de metodo/rota.
+3. Em toda mudanca de payload de sessao, incluir estrategia de fallback para tokens legados.
+4. Manter validacao de autorizacao em duas camadas: renderizacao condicional na UI e verificacao obrigatoria nos controllers.
+5. Fechar alteracoes de banco com checklist operacional: migration aplicada, client gerado, status sem drift e smoke test das rotas criticas.

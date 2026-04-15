@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/auth";
+import { findUserByIdRepository } from "@/modules/auth/repositories/find-user-by-id.repository";
 import { AppError } from "@/shared/errors/app-error";
 
 export async function requireAdminSession() {
@@ -18,11 +19,22 @@ export async function requireAdminSession() {
     redirect("/login");
   }
 
-  if (session.role !== "ADMIN") {
+  const currentUser = await findUserByIdRepository(session.sub);
+
+  if (!currentUser || currentUser.deletedAt) {
+    redirect("/login");
+  }
+
+  if (currentUser.role !== "ADMIN") {
     redirect("/");
   }
 
-  return session;
+  return {
+    ...session,
+    nome: currentUser.nome,
+    email: currentUser.email,
+    role: currentUser.role,
+  };
 }
 
 export async function requireAdminSessionForApi() {
@@ -39,9 +51,20 @@ export async function requireAdminSessionForApi() {
     throw new AppError("Sessao invalida", 401, "INVALID_SESSION");
   }
 
-  if (session.role !== "ADMIN") {
+  const currentUser = await findUserByIdRepository(session.sub);
+
+  if (!currentUser || currentUser.deletedAt) {
+    throw new AppError("Sessao invalida", 401, "INVALID_SESSION");
+  }
+
+  if (currentUser.role !== "ADMIN") {
     throw new AppError("Acesso negado", 403, "FORBIDDEN");
   }
 
-  return session;
+  return {
+    ...session,
+    nome: currentUser.nome,
+    email: currentUser.email,
+    role: currentUser.role,
+  };
 }

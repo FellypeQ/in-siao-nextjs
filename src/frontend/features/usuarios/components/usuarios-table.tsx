@@ -1,6 +1,7 @@
 "use client";
 
 import { DeleteUsuarioDialog } from "@/frontend/features/usuarios/components/delete-usuario-dialog";
+import { GenerateInviteDialog } from "@/frontend/features/usuarios/components/generate-invite-dialog";
 import {
   Alert,
   Box,
@@ -52,6 +53,8 @@ export function UsuariosTable({ currentUserId }: UsuariosTableProps) {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [generateInviteDialogOpen, setGenerateInviteDialogOpen] =
+    useState(false);
 
   async function loadItems() {
     try {
@@ -138,6 +141,9 @@ export function UsuariosTable({ currentUserId }: UsuariosTableProps) {
         <Typography variant="h4" sx={{ fontWeight: 800 }}>
           Usuarios
         </Typography>
+        <Button variant="contained" onClick={() => setGenerateInviteDialogOpen(true)}>
+          Gerar convite
+        </Button>
       </Box>
 
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
@@ -253,6 +259,11 @@ export function UsuariosTable({ currentUserId }: UsuariosTableProps) {
           setDeletingId(null);
         }}
         onConfirm={() => void handleConfirmDelete()}
+      />
+
+      <GenerateInviteDialog
+        open={generateInviteDialogOpen}
+        onClose={() => setGenerateInviteDialogOpen(false)}
       />
     </Stack>
   );

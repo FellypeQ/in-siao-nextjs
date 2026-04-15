@@ -1,6 +1,9 @@
 -- AlterEnum
 ALTER TYPE "Role" ADD VALUE 'STAFF';
 
+-- Commit explicito para permitir uso do novo valor enum em instrucoes subsequentes.
+COMMIT;
+
 -- AlterTable
 ALTER TABLE "users" ADD COLUMN "deletedAt" TIMESTAMP(3);
 

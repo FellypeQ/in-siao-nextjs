@@ -234,7 +234,7 @@ z.object({
   nome: z.string().min(2).max(100),
   sobrenome: z.string().min(2).max(100),
   email: z.string().email(),
-  password: z.string().min(8),
+  senha: z.string().min(8),
   token: z.string().uuid()
 })
 ```
@@ -298,20 +298,54 @@ Regras no service:
 
 ## Status de Execucao
 
-- Estado: `Backlog`
-- Responsavel: `<definir>`
-- Ultima atualizacao: `2026-04-14`
+- Estado: `Concluido`
+- Responsavel: `GitHub Copilot`
+- Ultima atualizacao: `2026-04-15`
 
 ### Checklist de Entrega
 
-- [ ] Schema criado/atualizado
-- [ ] Repository criado/atualizado
-- [ ] Service criado/atualizado
-- [ ] Controller/route criado/atualizado
-- [ ] UI criada/atualizada
-- [ ] Migration criada
-- [ ] `npx prisma generate` executado
-- [ ] Testes adicionados/atualizados
-- [ ] Testes passando
-- [ ] Lint sem erro
-- [ ] Criterios de aceite validados
+- [x] Schema criado/atualizado
+- [x] Repository criado/atualizado
+- [x] Service criado/atualizado
+- [x] Controller/route criado/atualizado
+- [x] UI criada/atualizada
+- [x] Migration criada
+- [x] `npx prisma generate` executado
+- [x] Testes adicionados/atualizados
+- [x] Testes passando
+- [x] Lint sem erro
+- [x] Criterios de aceite validados
+
+---
+
+## 16. Pos-mortem
+
+### Incidentes observados apos entrega
+
+**1) Login com `Credenciais invalidas` apos reset/migrations**
+
+- **Sintoma:** usuarios antigos nao conseguiam autenticar.
+- **Causa raiz:** banco de desenvolvimento foi resetado para resolver drift de migration e a tabela de usuarios ficou vazia.
+- **Resolucao:** criacao de usuario ADMIN de recuperacao para restabelecer acesso.
+- **Aprendizado:** quando houver reset de banco em dev, executar bootstrap/seed de usuario administrativo imediatamente.
+
+**2) Erro ao gerar convite apos seed**
+
+- **Sintoma:** endpoint de convite retornava erro interno em contas com sessao antiga.
+- **Causa raiz:** cookie de sessao ainda era criptograficamente valido, mas referenciava `session.sub` inexistente apos reset; ao criar `UserInvite`, a FK `createdById` falhava.
+- **Resolucao:** validacao de sessao reforcada para consultar o usuario atual no banco (existencia, `deletedAt` e role vigente) em `require-auth-session` e `require-admin-session`.
+- **Aprendizado:** sessao nao deve confiar apenas no token assinado; e necessario validar usuario ativo no banco para evitar sessoes orfas.
+
+**3) Diagnostico lento em erros 500**
+
+- **Sintoma:** respostas genericas de erro dificultavam identificar causa real.
+- **Causa raiz:** `toErrorResponse` nao registrava detalhes de excecoes nao mapeadas em ambiente local.
+- **Resolucao:** adicao de `console.error` detalhado para erros internos quando `NODE_ENV=development`.
+- **Aprendizado:** manter observabilidade minima no handler global de erros acelera muito o debug de regressao.
+
+### Acoes preventivas adotadas
+
+1. Sempre executar migration + `prisma generate` + validacao de login/admin apos mudancas de banco.
+2. Incluir passo de bootstrap de admin no fluxo de desenvolvimento apos reset do banco.
+3. Manter verificacao de usuario ativo nas camadas de sessao (`require-auth-session` e `require-admin-session`).
+4. Preservar logs detalhados de erro interno apenas em desenvolvimento.

@@ -1,5 +1,5 @@
 import { signUpSchema } from "@/modules/auth/schemas/sign-up.schema"
-import { signUpAuthService } from "@/modules/auth/services/sign-up-auth.service"
+import { signUpWithInviteAuthService } from "@/modules/auth/services/sign-up-with-invite-auth.service"
 import { toErrorResponse } from "@/shared/errors/app-error"
 
 export async function POST(request: Request) {
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const user = await signUpAuthService(parsed.data)
+    const user = await signUpWithInviteAuthService(parsed.data)
 
     return Response.json({ success: true, user }, { status: 201 })
   } catch (error) {

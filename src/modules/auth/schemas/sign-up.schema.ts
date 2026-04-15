@@ -57,7 +57,8 @@ export const signUpSchema = z.object({
     .regex(
       strongPasswordRegex,
       "A senha deve ter no minimo 8 caracteres, incluindo maiuscula, minuscula, numero e simbolo"
-    )
+    ),
+  token: z.string().uuid("Token de convite invalido")
 })
 
 export type SignUpInput = z.infer<typeof signUpSchema>

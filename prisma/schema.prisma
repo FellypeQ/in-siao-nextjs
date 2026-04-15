@@ -53,17 +53,34 @@ enum RelationshipType {
 }
 
 model User {
-  id                 String    @id @default(cuid())
+  id                 String       @id @default(cuid())
   nome               String
   sobrenomeEncrypted String
-  email              String    @unique
+  email              String       @unique
   passwordHash       String
-  role               Role      @default(STAFF)
+  role               Role         @default(STAFF)
   deletedAt          DateTime?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  invitesCreated     UserInvite[] @relation("InviteCreatedBy")
+  inviteUsed         UserInvite?  @relation("InviteUsedBy")
 
   @@map("users")
+}
+
+model UserInvite {
+  id          String    @id @default(cuid())
+  token       String    @unique
+  role        Role
+  createdById String
+  usedAt      DateTime?
+  usedById    String?   @unique
+  createdAt   DateTime  @default(now())
+
+  createdBy User  @relation("InviteCreatedBy", fields: [createdById], references: [id])
+  usedBy    User? @relation("InviteUsedBy", fields: [usedById], references: [id])
+
+  @@map("user_invites")
 }
 
 model Member {

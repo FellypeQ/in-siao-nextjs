@@ -1,9 +1,10 @@
-"use client"
+"use client";
 
-import LogoutIcon from "@mui/icons-material/Logout"
-import MenuIcon from "@mui/icons-material/Menu"
-import HomeIcon from "@mui/icons-material/Home"
-import GroupAddIcon from "@mui/icons-material/GroupAdd"
+import LogoutIcon from "@mui/icons-material/Logout";
+import MenuIcon from "@mui/icons-material/Menu";
+import HomeIcon from "@mui/icons-material/Home";
+import GroupAddIcon from "@mui/icons-material/GroupAdd";
+import GroupsIcon from "@mui/icons-material/Groups";
 import {
   AppBar,
   Avatar,
@@ -19,31 +20,35 @@ import {
   Menu,
   MenuItem,
   Toolbar,
-  Typography
-} from "@mui/material"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
+  Typography,
+} from "@mui/material";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 type AuthenticatedShellProps = {
   user: {
-    nome: string
-    email: string
-  }
-  children: React.ReactNode
-}
+    nome: string;
+    email: string;
+    role: "ADMIN" | "STAFF";
+  };
+  children: React.ReactNode;
+};
 
-const drawerWidth = 240
+const drawerWidth = 240;
 
-export function AuthenticatedShell({ user, children }: AuthenticatedShellProps) {
-  const router = useRouter()
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null)
+export function AuthenticatedShell({
+  user,
+  children,
+}: AuthenticatedShellProps) {
+  const router = useRouter();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
 
   async function handleLogout() {
-    await fetch("/api/auth/sign-out", { method: "POST" })
-    router.push("/login")
-    router.refresh()
+    await fetch("/api/auth/sign-out", { method: "POST" });
+    router.push("/login");
+    router.refresh();
   }
 
   const drawerContent = (
@@ -53,7 +58,11 @@ export function AuthenticatedShell({ user, children }: AuthenticatedShellProps) 
       </Typography>
       <List>
         <ListItem disablePadding>
-          <ListItemButton component={Link} href="/" onClick={() => setMobileOpen(false)}>
+          <ListItemButton
+            component={Link}
+            href="/"
+            onClick={() => setMobileOpen(false)}
+          >
             <ListItemIcon sx={{ color: "inherit" }}>
               <HomeIcon />
             </ListItemIcon>
@@ -61,24 +70,44 @@ export function AuthenticatedShell({ user, children }: AuthenticatedShellProps) 
           </ListItemButton>
         </ListItem>
         <ListItem disablePadding>
-          <ListItemButton component={Link} href="/visitantes" onClick={() => setMobileOpen(false)}>
+          <ListItemButton
+            component={Link}
+            href="/visitantes"
+            onClick={() => setMobileOpen(false)}
+          >
             <ListItemIcon sx={{ color: "inherit" }}>
               <GroupAddIcon />
             </ListItemIcon>
             <ListItemText primary="Visitantes" />
           </ListItemButton>
         </ListItem>
+        {user.role === "ADMIN" && (
+          <ListItem disablePadding>
+            <ListItemButton
+              component={Link}
+              href="/admin/usuarios"
+              onClick={() => setMobileOpen(false)}
+            >
+              <ListItemIcon sx={{ color: "inherit" }}>
+                <GroupsIcon />
+              </ListItemIcon>
+              <ListItemText primary="Usuarios" />
+            </ListItemButton>
+          </ListItem>
+        )}
       </List>
     </Box>
-  )
+  );
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", backgroundColor: "#f8f7f3" }}>
+    <Box
+      sx={{ display: "flex", minHeight: "100vh", backgroundColor: "#f8f7f3" }}
+    >
       <AppBar
         position="fixed"
         sx={{
           width: { md: `calc(100% - ${drawerWidth}px)` },
-          ml: { md: `${drawerWidth}px` }
+          ml: { md: `${drawerWidth}px` },
         }}
       >
         <Toolbar>
@@ -104,7 +133,11 @@ export function AuthenticatedShell({ user, children }: AuthenticatedShellProps) 
             <Button
               color="inherit"
               onClick={(event) => setMenuAnchor(event.currentTarget)}
-              startIcon={<Avatar sx={{ width: 28, height: 28 }}>{user.nome.charAt(0).toUpperCase()}</Avatar>}
+              startIcon={
+                <Avatar sx={{ width: 28, height: 28 }}>
+                  {user.nome.charAt(0).toUpperCase()}
+                </Avatar>
+              }
             >
               {user.nome}
             </Button>
@@ -118,8 +151,8 @@ export function AuthenticatedShell({ user, children }: AuthenticatedShellProps) 
               <MenuItem disabled>{user.email}</MenuItem>
               <MenuItem
                 onClick={() => {
-                  setMenuAnchor(null)
-                  void handleLogout()
+                  setMenuAnchor(null);
+                  void handleLogout();
                 }}
               >
                 <ListItemIcon>
@@ -132,7 +165,10 @@ export function AuthenticatedShell({ user, children }: AuthenticatedShellProps) 
         </Toolbar>
       </AppBar>
 
-      <Box component="nav" sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}>
+      <Box
+        component="nav"
+        sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
+      >
         <Drawer
           variant="temporary"
           open={mobileOpen}
@@ -140,7 +176,10 @@ export function AuthenticatedShell({ user, children }: AuthenticatedShellProps) 
           ModalProps={{ keepMounted: true }}
           sx={{
             display: { xs: "block", md: "none" },
-            "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth }
+            "& .MuiDrawer-paper": {
+              boxSizing: "border-box",
+              width: drawerWidth,
+            },
           }}
         >
           {drawerContent}
@@ -150,7 +189,10 @@ export function AuthenticatedShell({ user, children }: AuthenticatedShellProps) 
           variant="permanent"
           sx={{
             display: { xs: "none", md: "block" },
-            "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth }
+            "& .MuiDrawer-paper": {
+              boxSizing: "border-box",
+              width: drawerWidth,
+            },
           }}
           open
         >
@@ -162,5 +204,5 @@ export function AuthenticatedShell({ user, children }: AuthenticatedShellProps) 
         {children}
       </Box>
     </Box>
-  )
+  );
 }

@@ -1,11 +1,11 @@
-import { prisma } from "@/lib/prisma"
+import { prisma } from "@/lib/prisma";
 
 type CreateUserRepositoryInput = {
-  nome: string
-  sobrenomeEncrypted: string
-  email: string
-  passwordHash: string
-}
+  nome: string;
+  sobrenomeEncrypted: string;
+  email: string;
+  passwordHash: string;
+};
 
 export async function createUserRepository(input: CreateUserRepositoryInput) {
   return prisma.user.create({
@@ -14,7 +14,6 @@ export async function createUserRepository(input: CreateUserRepositoryInput) {
       sobrenomeEncrypted: input.sobrenomeEncrypted,
       email: input.email,
       passwordHash: input.passwordHash,
-      role: "ADMIN"
-    }
-  })
+    },
+  });
 }

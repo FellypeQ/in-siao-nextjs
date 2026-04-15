@@ -7,7 +7,13 @@ import {
   verifySessionToken
 } from "@/lib/auth"
 
-const PUBLIC_PATHS = ["/login", "/api/auth/sign-in", "/api/auth/sign-up"]
+const PUBLIC_PATHS = [
+  "/login",
+  "/cadastro",
+  "/api/auth/sign-in",
+  "/api/auth/sign-up",
+  "/api/auth/convite/validate"
+]
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`))

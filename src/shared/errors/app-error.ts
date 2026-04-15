@@ -24,6 +24,10 @@ export function toErrorResponse(error: unknown): Response {
     )
   }
 
+  if (process.env.NODE_ENV === "development") {
+    console.error("[INTERNAL_SERVER_ERROR] Erro nao tratado:", error)
+  }
+
   return Response.json(
     {
       success: false,

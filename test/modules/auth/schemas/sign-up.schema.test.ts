@@ -8,7 +8,8 @@ describe("signUpSchema", () => {
       nome: "Joao",
       sobrenome: "Silva",
       email: "  JOAO@EXAMPLE.COM  ",
-      senha: "Senha@123"
+      senha: "Senha@123",
+      token: "ec5f18d3-7a17-44be-ac55-150f7f75a95d"
     })
 
     expect(parsed.email).toBe("joao@example.com")
@@ -19,7 +20,8 @@ describe("signUpSchema", () => {
       nome: "Joao",
       sobrenome: "Silva",
       email: "joao@example.com",
-      senha: "12345678"
+      senha: "12345678",
+      token: "ec5f18d3-7a17-44be-ac55-150f7f75a95d"
     })
 
     expect(result.success).toBe(false)
@@ -29,5 +31,16 @@ describe("signUpSchema", () => {
     const status = getPasswordRulesStatus("Senha@123")
 
     expect(status.every((item) => item.met)).toBe(true)
+  })
+
+  it("rejeita payload sem token de convite", () => {
+    const result = signUpSchema.safeParse({
+      nome: "Joao",
+      sobrenome: "Silva",
+      email: "joao@example.com",
+      senha: "Senha@123"
+    })
+
+    expect(result.success).toBe(false)
   })
 })

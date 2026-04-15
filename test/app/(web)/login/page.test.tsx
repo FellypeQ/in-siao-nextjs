@@ -1,5 +1,4 @@
 import { render, screen } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import LoginPage from "@/app/(web)/login/page"
@@ -11,6 +10,9 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: pushMock,
     refresh: refreshMock
+  }),
+  useSearchParams: () => ({
+    get: () => null
   })
 }))
 
@@ -26,15 +28,10 @@ describe("LoginPage", () => {
     expect(screen.getByRole("button", { name: "Entrar" })).toBeInTheDocument()
   })
 
-  it("alterna para cadastro e exibe campos adicionais", async () => {
-    const user = userEvent.setup()
-
+  it("nao exibe opcao de cadastro publico", () => {
     render(<LoginPage />)
 
-    await user.click(screen.getByRole("tab", { name: "Cadastro" }))
-
-    expect(screen.getByRole("button", { name: "Criar cadastro" })).toBeInTheDocument()
-    expect(screen.getByText("Nome")).toBeInTheDocument()
-    expect(screen.getByText("Sobrenome")).toBeInTheDocument()
+    expect(screen.queryByRole("tab", { name: "Cadastro" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Criar cadastro" })).not.toBeInTheDocument()
   })
 })

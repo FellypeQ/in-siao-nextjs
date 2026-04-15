@@ -8,43 +8,33 @@ import {
   CardContent,
   CircularProgress,
   Stack,
-  Tab,
-  Tabs,
   TextField,
   Typography
 } from "@mui/material"
 import { useRouter } from "next/navigation"
-import { FormEvent, useMemo, useState } from "react"
-
-import { PasswordRulesChecklist } from "@/frontend/features/auth/components/password-rules-checklist"
-
-type AuthMode = "login" | "cadastro"
+import { FormEvent, useEffect, useState } from "react"
 
 type FormValues = {
-  nome: string
-  sobrenome: string
   email: string
   senha: string
 }
 
 const initialValues: FormValues = {
-  nome: "",
-  sobrenome: "",
   email: "",
   senha: ""
 }
 
 export function LoginPageView() {
   const router = useRouter()
-  const [mode, setMode] = useState<AuthMode>("login")
   const [values, setValues] = useState<FormValues>(initialValues)
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
-  const [successMessage, setSuccessMessage] = useState("")
+  const [inviteSignUpSuccess, setInviteSignUpSuccess] = useState(false)
 
-  const submitLabel = useMemo(() => {
-    return mode === "login" ? "Entrar" : "Criar cadastro"
-  }, [mode])
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    setInviteSignUpSuccess(params.get("status") === "invite-sign-up-success")
+  }, [])
 
   function updateValue<K extends keyof FormValues>(key: K, value: FormValues[K]) {
     setValues((current) => ({
@@ -56,37 +46,9 @@ export function LoginPageView() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage("")
-    setSuccessMessage("")
     setLoading(true)
 
     try {
-      if (mode === "cadastro") {
-        const signUpResponse = await fetch("/api/auth/sign-up", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            nome: values.nome,
-            sobrenome: values.sobrenome,
-            email: values.email,
-            senha: values.senha
-          })
-        })
-
-        const signUpResult = (await signUpResponse.json()) as {
-          success: boolean
-          error?: { message?: string }
-        }
-
-        if (!signUpResponse.ok) {
-          throw new Error(signUpResult.error?.message ?? "Nao foi possivel realizar o cadastro")
-        }
-
-        setSuccessMessage("Cadastro realizado com sucesso. Faca login para continuar.")
-        setMode("login")
-        setValues((current) => ({ ...current, senha: "" }))
-        return
-      }
-
       const signInResponse = await fetch("/api/auth/sign-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -160,42 +122,10 @@ export function LoginPageView() {
               Acesso ao sistema
             </Typography>
             <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
-              Entre com sua conta ou crie um novo cadastro.
+              Entre com sua conta para continuar.
             </Typography>
 
-            <Tabs
-              value={mode}
-              onChange={(_, value: AuthMode) => {
-                setMode(value)
-                setErrorMessage("")
-                setSuccessMessage("")
-              }}
-              sx={{ mb: 2 }}
-            >
-              <Tab value="login" label="Login" />
-              <Tab value="cadastro" label="Cadastro" />
-            </Tabs>
-
             <Stack component="form" spacing={1.5} onSubmit={handleSubmit}>
-              {mode === "cadastro" && (
-                <>
-                  <TextField
-                    label="Nome"
-                    value={values.nome}
-                    onChange={(event) => updateValue("nome", event.target.value)}
-                    required
-                    fullWidth
-                  />
-                  <TextField
-                    label="Sobrenome"
-                    value={values.sobrenome}
-                    onChange={(event) => updateValue("sobrenome", event.target.value)}
-                    required
-                    fullWidth
-                  />
-                </>
-              )}
-
               <TextField
                 type="email"
                 label="Email"
@@ -214,13 +144,16 @@ export function LoginPageView() {
                 fullWidth
               />
 
-              {mode === "cadastro" && <PasswordRulesChecklist password={values.senha} />}
+              {inviteSignUpSuccess && (
+                <Alert severity="success">
+                  Conta criada com sucesso. Faca login para continuar.
+                </Alert>
+              )}
 
               {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
-              {successMessage && <Alert severity="success">{successMessage}</Alert>}
 
               <Button type="submit" size="large" variant="contained" disabled={loading} sx={{ mt: 1 }}>
-                {loading ? <CircularProgress size={22} color="inherit" /> : submitLabel}
+                {loading ? <CircularProgress size={22} color="inherit" /> : "Entrar"}
               </Button>
             </Stack>
           </CardContent>

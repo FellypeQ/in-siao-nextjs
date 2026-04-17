@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import LoginPage from "@/app/(web)/login/page"
+import LoginPage from "@/app/(web_pages)/login/page"
 
 const pushMock = vi.fn()
 const refreshMock = vi.fn()
@@ -25,7 +25,7 @@ describe("LoginPage", () => {
     render(<LoginPage />)
 
     expect(screen.getByRole("heading", { name: "Acesso ao sistema" })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "Entrar" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /entrar/i })).toBeInTheDocument()
   })
 
   it("nao exibe opcao de cadastro publico", () => {

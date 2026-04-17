@@ -171,15 +171,13 @@ src/
 
   app/
 
-    (public)/
-      visitante/
+    (web_pages)/          ← rotas de página (Server Components finos)
+      login/
         page.tsx
-
-    (admin)/
       visitantes/
         page.tsx
 
-    api/
+    api/                  ← controllers HTTP (routes finos)
       visitantes/
         route.ts
 
@@ -556,23 +554,20 @@ Preferir:
 
 ---
 
-# Regras de Testes (futuro)
+# Regras de Testes
 
-Framework:
+Framework: **Vitest** + **@testing-library/react** + **jsdom**
 
-```text
-Vitest
-```
+Consultar `AGENTS_TESTS.md` para o guia completo.
 
-Testar:
+Resumo obrigatório:
 
-* Services
-* Repositories
-* Validações
-
-Nunca testar:
-
-* UI primeiro
+* Arquivos de teste ficam em `test/`, espelhando `src/` sem o prefixo `src/`
+* Nomenclatura: `<arquivo-fonte>.test.ts` ou `<arquivo-fonte>.test.tsx`
+* Imports sempre via alias `@/`, nunca caminhos relativos
+* Testar: schemas, services, controllers (routes) e UI crítica
+* Mocks de sessão devem incluir `permissions` e `role` reais
+* `npx vitest run` deve passar sem falhas antes de toda entrega
 
 ---
 
@@ -634,6 +629,18 @@ Checklist mínimo de saída do agent:
 
 ---
 
+# Sub-Agents do Projeto
+
+Cada sub-agent possui um arquivo dedicado com regras detalhadas para sua área. Todo agent deve ler o sub-agent relevante antes de atuar naquela camada.
+
+| Arquivo | Área | Quando ler |
+|---|---|---|
+| `AGENTS_APP.md` | `src/app/` — pages, controllers, core | Ao criar/editar páginas, routes ou arquivos core |
+| `AGENTS_FRONTEND.md` | `src/frontend/` — components, features, shared | Ao criar/editar componentes ou views |
+| `AGENTS_TESTS.md` | `test/` — todos os testes | Ao criar, mover ou revisar qualquer teste |
+
+---
+
 # Agents Específicos (quando necessário)
 
 ## Agent de Banco (Prisma)
@@ -645,23 +652,46 @@ Responsável por:
 * constraints e índices
 * execução obrigatória de `npx prisma generate`
 
+## Agent de App (`src/app/`)
+
+Responsável por:
+
+* arquivos core: `layout.tsx`, `providers.tsx`, `emotion-registry.tsx`
+* rotas de página em `(web_pages)/`: Server Components finos que autenticam e renderizam uma View
+* controllers em `api/`: routes finos que validam, chamam service e retornam resposta
+
+Guia completo: `AGENTS_APP.md`
+
 ## Agent de API (Controller/Service/Repository)
 
 Responsável por:
 
-* schemas Zod
-* services com regra de negócio
-* repositories com Prisma
-* rotas API finas e padronizadas
+* schemas Zod em `modules/<modulo>/schemas/`
+* services com regra de negócio em `modules/<modulo>/services/`
+* repositories com Prisma em `modules/<modulo>/repositories/`
+* rotas API finas em `app/api/`
 
-## Agent de UI (MUI + App Router)
+## Agent de Frontend (`src/frontend/`)
 
 Responsável por:
 
-* páginas e componentes visuais
-* integração com API
+* componentes compartilhados em `frontend/components/`
+* views de feature em `frontend/features/`
+* hooks e utilitários em `frontend/shared/`
+* integração com API via fetch
 * evitar padrões que quebrem Server/Client boundaries
-* testes de comportamento de UI
+
+Guia completo: `AGENTS_FRONTEND.md`
+
+## Agent de Testes (`test/`)
+
+Responsável por:
+
+* criação e manutenção de testes em `test/`
+* cobertura de schemas, services, routes e UI
+* garantir que `npx vitest run` passe em toda entrega
+
+Guia completo: `AGENTS_TESTS.md`
 
 ---
 

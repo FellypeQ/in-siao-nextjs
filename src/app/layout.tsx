@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { EmotionRegistry } from "./emotion-registry";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -24,9 +25,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <body>
-        <Providers>{children}</Providers>
+        <EmotionRegistry>
+          <Providers>{children}</Providers>
+        </EmotionRegistry>
       </body>
     </html>
   );

@@ -96,10 +96,10 @@ test/
 ### Checklist de auditoria de guards por SPEC
 
 **SPEC 007 (home + chart)**:
-- [ ] `GET /api/visitantes/chart` → guard `VISITANTES_LISTAR`
+- [x] `GET /api/visitantes/chart` → apenas sessão (`requireAuthSessionForApi`), sem guard de permissão por decisão de negócio (dados não sensíveis)
 - [ ] Card "Cadastrar" → oculto sem `VISITANTES_CADASTRAR`
 - [ ] Card "Listar" → oculto sem `VISITANTES_LISTAR`
-- [ ] Gráfico → oculto sem `VISITANTES_LISTAR`
+- [x] Gráfico → visível para usuário autenticado, independente de permissão de visitantes (dados não sensíveis)
 - [ ] `/visitantes/listagem/page.tsx` → guard `VISITANTES_LISTAR`
 
 **SPEC 008 (delete + telefone)**:
@@ -125,7 +125,7 @@ test/
 ## 12. Criterios de Aceite
 
 - **CA-01** (RF-01): Dado chamada a qualquer rota API das SPECs 007-009 sem sessão, então retorna 401
-- **CA-02** (RF-01): Dado chamada com sessão mas sem a permissão específica exigida, então retorna 403
+- **CA-02** (RF-01): Dado chamada com sessão mas sem a permissão específica exigida, então retorna 403 (exceto `GET /api/visitantes/chart`, que não exige permissão por decisão de negócio)
 - **CA-03** (RF-02): Dado usuário sem `VISITANTES_CADASTRAR`, quando acessa home de visitantes, então card "Cadastrar" não aparece
 - **CA-04** (RF-03, RF-04): Dado admin acessa gerenciamento de permissões de usuário, então vê checkboxes de cada categoria agrupados horizontalmente com wrap, e categorias empilhadas verticalmente
 - **CA-05** (RF-05): Dado admin acessa gerenciamento de permissões, então vê categoria "Mensagens" com `MENSAGENS_GERENCIAR` e `MENSAGENS_ENVIAR`
@@ -135,6 +135,7 @@ test/
 
 - **Risco**: Gaps na auditoria podem revelar rotas sem guard nas SPECs 007-009 — o time de desenvolvimento deve corrigir no mesmo PR desta SPEC
 - **Decisão**: Layout de permissões usa gap MUI (`gap: 1` = 8px) entre checkboxes dentro da categoria — pode ser ajustado visualmente na implementação
+- **Decisão**: O gráfico de visitantes (home) e a rota `GET /api/visitantes/chart` permanecem sem guard de permissão, exigindo apenas sessão autenticada, por tratarem dados não sensíveis
 - **Risco**: Testes de `user-permissions-form.tsx` podem precisar de atualização se a estrutura JSX mudar com o novo layout
 
 ## 14. Plano de Implementacao (ordem)
@@ -151,11 +152,12 @@ test/
 
 - **Auditoria de rotas**: verificar nos testes existentes se há casos de 403 para cada permissão das rotas das SPECs 007-009; adicionar casos faltantes
 - **UI** `user-permissions-form`: renderiza categorias em stack vertical, renderiza checkboxes dentro de cada categoria em layout flex, exibe categoria "Mensagens" com as duas novas permissões
+- **UI** home de visitantes: gráfico visível para usuário autenticado sem depender de `VISITANTES_LISTAR`
 
 ## Status de Execucao
 
-- Estado: `Backlog`
-- Responsavel: `<definir>`
+- Estado: `Concluido`
+- Responsavel: `GitHub Copilot`
 - Ultima atualizacao: `2026-04-20`
 
 ### Checklist de Entrega
@@ -163,11 +165,36 @@ test/
 - [ ] Schema criado/atualizado
 - [ ] Repository criado/atualizado
 - [ ] Service criado/atualizado
-- [ ] Controller/route criado/atualizado
-- [ ] UI criada/atualizada (quando aplicavel)
+- [x] Controller/route criado/atualizado
+- [x] UI criada/atualizada (quando aplicavel)
 - [ ] Migration criada (quando aplicavel)
 - [ ] `npx prisma generate` executado (quando aplicavel)
-- [ ] Testes adicionados/atualizados
-- [ ] Testes passando
-- [ ] Lint sem erro
-- [ ] Criterios de aceite validados
+- [x] Testes adicionados/atualizados
+- [x] Testes passando
+- [x] Lint sem erro
+- [x] Criterios de aceite validados
+
+## 16. Pos-mortem da Entrega
+
+### 16.1 O que funcionou bem
+
+- Auditoria de guards em API e UI identificou rapidamente o ponto de maior ambiguidade (gráfico da home de visitantes).
+- A separacao de responsabilidades foi mantida: ajustes de guard em `route.ts`, ajustes visuais em componente de frontend e cobertura em testes.
+- Validacao final com suite completa (`npx vitest run`) e lint garantiu entrega sem regressao.
+
+### 16.2 Desvio de escopo/decisao durante execucao
+
+- A regra inicial de exigir `VISITANTES_LISTAR` no grafico foi alterada por decisao de negocio durante a execucao.
+- Regra final adotada: `GET /api/visitantes/chart` e grafico da home exigem apenas sessao autenticada, por tratarem dados nao sensiveis.
+- A SPEC foi atualizada para refletir oficialmente a decisao (checklist, criterios de aceite e riscos/decisoes).
+
+### 16.3 Riscos observados
+
+- Existe risco recorrente de divergencia entre checklist inicial da SPEC e regra de negocio validada no decorrer da implementacao.
+- Mudancas de criterio de autorizacao no meio da execucao podem gerar retrabalho em testes se nao forem registradas imediatamente.
+
+### 16.4 Acoes preventivas para proximas SPECs
+
+- Validar e congelar, antes da codificacao, quais endpoints sao sensiveis vs nao sensiveis para definir guards desde o inicio.
+- Em SPECs de permissionamento, explicitar excecoes de autorizacao ja na secao de requisitos e criterios de aceite.
+- Manter um teste de contrato por endpoint que documente explicitamente a regra de autorizacao esperada (401/403 ou apenas sessao).

@@ -145,16 +145,27 @@ export function UserPermissionsForm({
           <CircularProgress size={24} />
         </Box>
       ) : (
-        <Stack spacing={1.5}>
-          {Object.entries(PERMISSIONS_BY_MODULE).map(([moduleName, modulePermissions]) => (
-            <Box key={moduleName}>
+        <Stack spacing={0}>
+          {Object.entries(PERMISSIONS_BY_MODULE).map(([moduleName, modulePermissions], index) => (
+            <Box key={moduleName} sx={{ mb: 2 }} data-testid={`permission-category-${index}`}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
                 {moduleName}
               </Typography>
-              <Stack>
+              <Box
+                sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}
+                data-testid={`permission-items-${index}`}
+              >
                 {modulePermissions.map((permission) => (
                   <FormControlLabel
                     key={permission}
+                    sx={{
+                      m: 0,
+                      flex: {
+                        xs: "1 1 100%",
+                        sm: "1 1 calc(50% - 8px)",
+                        md: "1 1 calc(33.333% - 8px)",
+                      },
+                    }}
                     control={
                       <Checkbox
                         checked={selectedPermissions.includes(permission)}
@@ -165,7 +176,7 @@ export function UserPermissionsForm({
                     label={permissionLabels[permission]}
                   />
                 ))}
-              </Stack>
+              </Box>
             </Box>
           ))}
 

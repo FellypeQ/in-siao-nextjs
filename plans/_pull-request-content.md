@@ -21,61 +21,68 @@ A sincronização da branch com o remote e a criação do PR serão feitas manua
 
 ### Nome da branch
 
-feature/spec-013-cascade-delete-banco-limpeza-repositories
+feature/spec-014-password-reset-email-preview
 
 ### Título do PR
 
-feat: implementa cascade delete no banco e limpeza de repositories (SPEC 013)
+feat: implementa fluxo de esqueci minha senha com reset via email (SPEC 014)
 
 ### Descrição do PR
 
 ## Contexto
 
-Implementacao da SPEC 013 para consolidar exclusoes em cascata no banco, remover logica redundante em repositories e garantir a exclusao transacional de familiares orfaos ao excluir visitantes.
+Implementacao da SPEC 014 para habilitar recuperacao de senha com token por email, incluindo paginas publicas de solicitacao/confirmacao, rotas API, modelagem de token no banco, envio de email via Resend e cobertura de testes.
 
 ## O que foi implementado
 
-### Contrato de banco para onDelete ausente
+### Fluxo completo de password reset
 
-- Atualizado o `prisma/schema.prisma` para explicitar `onDelete: SetNull` em relacoes com `User` que estavam sem contrato explicito.
-- Tornados nullable os campos necessarios para compatibilidade com `SetNull`:
-  - `UserInvite.createdById`
-  - `MemberMessageLog.sentByUserId`
-- Criada e aplicada migration incremental: `20260420162027_spec_013_add_missing_on_delete`.
+- Criadas as paginas publicas:
+  - `/(web_pages)/esqueci-minha-senha`
+  - `/(web_pages)/redefinir-senha`
+- Adicionado link "Esqueci minha senha" na tela de login.
+- Implementado redirecionamento de sucesso para `/login?status=password-reset-success` apos reset.
 
-### Simplificacao da exclusao de visitante
+### API e camada de dominio
 
-- Refatorado `delete-visitante.service.ts` para orquestrar o fluxo com `prisma.$transaction`.
-- Removida a logica de delecao manual redundante de entidades cobertas por cascade no banco.
-- Mantida apenas a regra de negocio nao coberta por FK: exclusao de familiares que ficam orfaos.
+- Criados endpoints publicos:
+  - `POST /api/auth/password-reset/request`
+  - `POST /api/auth/password-reset/confirm`
+- Criados schemas Zod de request/confirm.
+- Criados repositories para token de reset e atualizacao de senha.
+- Criados services de solicitacao e confirmacao do reset.
+- Implementado rate limit in-memory (5 req / 15 min) no endpoint de request.
 
-### Repositories novos para regra de orfao
+### Email e preview
 
-- Criado `find-related-member-ids.repository.ts` para coletar familiares do principal antes do delete.
-- Criado `is-orphan-member.repository.ts` para validar orfandade por regra de dominio:
-  - sem `MemberVisitor`
-  - sem `MemberRelationship` remanescente.
+- Criado job `send-password-reset-email.job.ts` com Resend.
+- Criado template React Email `password-reset.tsx` com render utilitario.
+- Ajustado script de preview para carregar variaveis de ambiente no CLI:
+  - `node --env-file=.env ./node_modules/react-email/dist/cli/index.mjs dev --dir ./src/mailer/templates --port 4000`
+- Template passou a usar `NEXT_PUBLIC_STORAGE_URL` para assets publicos.
 
-### Limpeza de legado
+### Banco de dados
 
-- Removido `delete-visitante.repository.ts`, que concentrava orquestracao de fluxo que passou para o service.
-- Removido teste legado correspondente e substituido por testes focados na nova arquitetura.
+- Adicionado model `PasswordResetToken` no Prisma.
+- Criada migration `20260420170606_add_password_reset_tokens`.
+- Prisma Client atualizado.
 
-### Documentacao da entrega
+### Controle de acesso publico
 
-- Atualizada a SPEC 013 com status `Concluido`, checklist marcado e secao de pos-mortem com aprendizados da implementacao.
+- Atualizado `src/proxy.ts` para permitir acesso publico as rotas:
+  - `/esqueci-minha-senha`
+  - `/redefinir-senha`
+  - `/api/auth/password-reset/request`
+  - `/api/auth/password-reset/confirm`
+
+### Documentacao
+
+- Atualizada a SPEC 014 com status de execucao, complementos (email/testes/preview) e pos-mortem curto.
 
 ## Testes
 
-- Testes de service atualizados para validar:
-  - exclusao do principal
-  - exclusao de familiar orfao
-  - preservacao de familiar nao orfao
-  - ausencia de transacao quando visitante nao existe.
-- Testes novos de repository adicionados para:
-  - `find-related-member-ids.repository.ts`
-  - `is-orphan-member.repository.ts`
+- Novos testes de schema, service, route e UI para o fluxo de password reset.
+- Cobertura de cenarios de validacao, expiracao de token, nao vazamento de existencia de email e rate limit.
 - Execucoes validadas durante a entrega:
-  - `npx vitest run`
-  - `npm run lint`
-  - `npx prisma migrate status`
+  - `npm run test -- test/frontend/features/auth/components/forgot-password-view.test.tsx`
+  - `npm run lint -- src/proxy.ts`

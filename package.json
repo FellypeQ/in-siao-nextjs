@@ -12,7 +12,8 @@
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:migrate:deploy:vercel": "if [ \"$VERCEL_ENV\" = \"production\" ] && [ \"$RUN_DB_MIGRATIONS\" = \"true\" ]; then if [ -z \"$DIRECT_URL\" ]; then echo \"DIRECT_URL is required to run Prisma migrations on Vercel production\"; exit 1; fi; echo \"Running prisma migrate deploy on Vercel production\"; prisma migrate deploy; else echo \"Skipping prisma migrate deploy (VERCEL_ENV=$VERCEL_ENV, RUN_DB_MIGRATIONS=$RUN_DB_MIGRATIONS)\"; fi",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "email": "node --env-file=.env ./node_modules/react-email/dist/cli/index.mjs dev --dir ./src/mailer/templates --port 4000"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -23,6 +24,8 @@
     "@mui/x-date-pickers": "^9.0.0",
     "@prisma/adapter-pg": "^7.7.0",
     "@prisma/client": "^7.7.0",
+    "@react-email/components": "^1.0.12",
+    "@react-email/render": "^2.0.7",
     "bcryptjs": "^3.0.3",
     "dayjs": "^1.11.20",
     "next": "16.2.3",
@@ -31,10 +34,12 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.72.1",
+    "resend": "^6.12.2",
     "xlsx": "^0.18.5",
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@react-email/ui": "^6.0.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
@@ -45,6 +50,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.3",
     "jsdom": "^29.0.2",
+    "react-email": "^6.0.0",
     "typescript": "^5",
     "vitest": "^4.1.4"
   }

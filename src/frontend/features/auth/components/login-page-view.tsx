@@ -9,6 +9,7 @@ import {
   TextField,
   Typography
 } from "@mui/material"
+import Link from "next/link"
 import { PasswordField } from "@/frontend/components/inputs/password-field"
 import { useRouter } from "next/navigation"
 import { FormEvent, useEffect, useState } from "react"
@@ -29,10 +30,12 @@ export function LoginPageView() {
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
   const [inviteSignUpSuccess, setInviteSignUpSuccess] = useState(false)
+  const [passwordResetSuccess, setPasswordResetSuccess] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     setInviteSignUpSuccess(params.get("status") === "invite-sign-up-success")
+    setPasswordResetSuccess(params.get("status") === "password-reset-success")
   }, [])
 
   function updateValue<K extends keyof FormValues>(key: K, value: FormValues[K]) {
@@ -226,9 +229,30 @@ export function LoginPageView() {
               />
             </Box>
 
+            <Box sx={{ textAlign: "right" }}>
+              <Link href="/esqueci-minha-senha" style={{ textDecoration: "none" }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: "text.secondary",
+                    "&:hover": { color: "primary.main" },
+                    cursor: "pointer"
+                  }}
+                >
+                  Esqueci minha senha
+                </Typography>
+              </Link>
+            </Box>
+
             {inviteSignUpSuccess && (
               <Alert severity="success">
                 Conta criada com sucesso. Faça login para continuar.
+              </Alert>
+            )}
+
+            {passwordResetSuccess && (
+              <Alert severity="success">
+                Senha redefinida com sucesso. Faça login com sua nova senha.
               </Alert>
             )}
 

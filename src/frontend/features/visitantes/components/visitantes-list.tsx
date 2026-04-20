@@ -25,6 +25,7 @@ import {
 } from "@/frontend/features/visitantes/constants/visitante-enum-translations"
 import { ExportVisitantesButton } from "@/frontend/features/visitantes/components/export-visitantes-button"
 import { usePermissions } from "@/frontend/shared/hooks/use-permissions"
+import { formatPhone } from "@/frontend/shared/utils/format-phone"
 import { Permission } from "@/shared/constants/permissions"
 import dayjs from "dayjs"
 import "dayjs/locale/pt-br"
@@ -115,6 +116,9 @@ export function VisitantesList({ role, permissions }: VisitantesListProps) {
   const canExportVisitantes = can(Permission.VISITANTES_EXPORTAR)
   const canCreateVisitante = can(Permission.VISITANTES_CADASTRAR)
   const canEditVisitante = can(Permission.VISITANTES_EDITAR)
+  const canDeleteVisitante = can(Permission.VISITANTES_EXCLUIR)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     async function loadPage() {
@@ -193,6 +197,30 @@ export function VisitantesList({ role, permissions }: VisitantesListProps) {
       setSelected(null)
     } finally {
       setModalLoading(false)
+    }
+  }
+
+  async function handleDelete() {
+    if (!selectedId) return
+
+    try {
+      setDeleting(true)
+      const response = await fetch(`/api/visitantes/${selectedId}`, { method: "DELETE" })
+
+      if (!response.ok) {
+        const result = (await response.json()) as { error?: { message?: string } }
+        throw new Error(result.error?.message ?? "Nao foi possivel excluir visitante")
+      }
+
+      setItems((current) => current.filter((item) => item.id !== selectedId))
+      setDeleteConfirmOpen(false)
+      setSelectedId(null)
+      setSelected(null)
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Erro ao excluir visitante")
+      setDeleteConfirmOpen(false)
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -277,7 +305,7 @@ export function VisitantesList({ role, permissions }: VisitantesListProps) {
                       Nascimento: {formatCivilDate(item.birthDate)}
                     </Typography>
                     <Typography color="text.secondary" variant="body2">
-                      Telefone: {item.phone ?? "Nao informado"}
+                      Telefone: {item.phone ? formatPhone(item.phone) : "Nao informado"}
                     </Typography>
                   </Box>
 
@@ -323,7 +351,7 @@ export function VisitantesList({ role, permissions }: VisitantesListProps) {
                 <strong>Data de nascimento:</strong> {formatCivilDate(selected.member.birthDate)}
               </Typography>
               <Typography>
-                <strong>Telefone:</strong> {selected.member.phone ?? "Nao informado"}
+                <strong>Telefone:</strong> {selected.member.phone ? formatPhone(selected.member.phone) : "Nao informado"}
               </Typography>
               <Typography>
                 <strong>Batizado:</strong> {selected.member.baptized ? "Sim" : "Nao"}
@@ -375,6 +403,15 @@ export function VisitantesList({ role, permissions }: VisitantesListProps) {
           >
             Fechar
           </Button>
+          {canDeleteVisitante && (
+            <Button
+              color="error"
+              disabled={!selectedId}
+              onClick={() => setDeleteConfirmOpen(true)}
+            >
+              Excluir
+            </Button>
+          )}
           {canEditVisitante && (
             <Button
               variant="contained"
@@ -390,6 +427,23 @@ export function VisitantesList({ role, permissions }: VisitantesListProps) {
               Editar
             </Button>
           )}
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
+        <DialogTitle>Confirmar exclusao</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Tem certeza que deseja excluir <strong>{selected?.member.name}</strong>? Esta acao nao pode ser desfeita.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteConfirmOpen(false)} disabled={deleting}>
+            Cancelar
+          </Button>
+          <Button color="error" variant="contained" onClick={() => void handleDelete()} disabled={deleting}>
+            {deleting ? <CircularProgress size={20} color="inherit" /> : "Excluir"}
+          </Button>
         </DialogActions>
       </Dialog>
       </Stack>

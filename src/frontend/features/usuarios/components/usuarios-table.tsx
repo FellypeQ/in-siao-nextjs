@@ -128,6 +128,10 @@ export function UsuariosTable({ currentUserId }: UsuariosTableProps) {
     }
   }
 
+  function handleOpenUsuarioDetails(usuarioId: string) {
+    router.push(`/admin/usuarios/${usuarioId}`);
+  }
+
   return (
     <Stack spacing={2}>
       <Box
@@ -153,9 +157,16 @@ export function UsuariosTable({ currentUserId }: UsuariosTableProps) {
           <CircularProgress />
         </Box>
       ) : (
-        <Paper>
-          <TableContainer>
-            <Table size="small">
+        <Paper sx={{ width: "100%", overflowX: "auto" }}>
+          <TableContainer
+            sx={{
+              width: "100%",
+              overflowX: "auto",
+              WebkitOverflowScrolling: "touch",
+              "& table": { minWidth: 760 },
+            }}
+          >
+            <Table>
               <TableHead>
                 <TableRow>
                   <TableCell>Nome</TableCell>
@@ -168,7 +179,12 @@ export function UsuariosTable({ currentUserId }: UsuariosTableProps) {
               </TableHead>
               <TableBody>
                 {paginatedItems.map((item) => (
-                  <TableRow key={item.id} hover>
+                  <TableRow
+                    key={item.id}
+                    hover
+                    onClick={() => handleOpenUsuarioDetails(item.id)}
+                    sx={{ cursor: "pointer" }}
+                  >
                     <TableCell>{`${item.nome} ${item.sobrenome}`}</TableCell>
                     <TableCell>{item.email}</TableCell>
                     <TableCell>{item.role}</TableCell>
@@ -188,17 +204,19 @@ export function UsuariosTable({ currentUserId }: UsuariosTableProps) {
                       >
                         <Button
                           size="small"
-                          onClick={() =>
-                            router.push(`/admin/usuarios/${item.id}`)
-                          }
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleOpenUsuarioDetails(item.id);
+                          }}
                         >
                           Visualizar
                         </Button>
                         <Button
                           size="small"
-                          onClick={() =>
-                            router.push(`/admin/usuarios/${item.id}/editar`)
-                          }
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            router.push(`/admin/usuarios/${item.id}/editar`);
+                          }}
                         >
                           Editar
                         </Button>
@@ -209,7 +227,8 @@ export function UsuariosTable({ currentUserId }: UsuariosTableProps) {
                             item.id === currentUserId ||
                             item.status === "INATIVO"
                           }
-                          onClick={() => {
+                          onClick={(event) => {
+                            event.stopPropagation();
                             setDeletingId(item.id);
                             setDeleteDialogOpen(true);
                           }}

@@ -78,11 +78,51 @@ describe("UsuariosTable", () => {
     await user.click(await screen.findByRole("button", { name: "Excluir" }));
 
     expect(screen.getByText("Confirmar exclusao")).toBeInTheDocument();
+    expect(pushMock).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole("button", { name: "Cancelar" }));
 
     await waitFor(() => {
       expect(screen.queryByText("Confirmar exclusao")).not.toBeInTheDocument();
     });
+  });
+
+  it("navega para detalhes ao clicar na linha", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          success: true,
+          usuarios: [
+            {
+              id: "user-1",
+              nome: "Maria",
+              sobrenome: "Silva",
+              email: "maria@example.com",
+              role: "ADMIN",
+              status: "ATIVO",
+              deletedAt: null,
+              createdAt: "2026-01-01T00:00:00.000Z",
+            },
+          ],
+        }),
+      }),
+    );
+
+    const user = userEvent.setup();
+
+    render(<UsuariosTable currentUserId="admin-1" />);
+
+    const nomeCell = await screen.findByText("Maria Silva");
+    const row = nomeCell.closest("tr");
+
+    expect(row).not.toBeNull();
+
+    if (row) {
+      await user.click(row);
+    }
+
+    expect(pushMock).toHaveBeenCalledWith("/admin/usuarios/user-1");
   });
 });

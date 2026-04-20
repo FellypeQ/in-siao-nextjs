@@ -27,12 +27,16 @@ export async function listVisitantesForExportRepository(input: ExportVisitantesI
     orderBy: {
       createdAt: "desc"
     },
-    include: {
+    select: {
+      name: true,
+      birthDate: true,
+      phone: true,
+      type: true,
+      createdAt: true,
       visitorProfile: {
         select: {
           actualChurch: true,
-          howKnow: true,
-          howKnowOtherAnswer: true
+          howKnow: true
         }
       },
       memberPrays: {
@@ -49,13 +53,15 @@ export async function listVisitantesForExportRepository(input: ExportVisitantesI
         }
       },
       principalRelations: {
-        include: {
+        select: {
+          relationshipType: true,
           relatedMember: {
             select: {
-              id: true,
               name: true,
               birthDate: true,
-              phone: true
+              phone: true,
+              type: true,
+              createdAt: true
             }
           }
         },

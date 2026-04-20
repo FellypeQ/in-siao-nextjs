@@ -1,5 +1,6 @@
 import * as XLSX from "xlsx"
 
+import { formatPhone } from "@/frontend/shared/utils/format-phone"
 import {
   translateActualChurch,
   translateHowKnow,
@@ -32,33 +33,91 @@ function formatDateTime(date: Date): string {
   }).format(date)
 }
 
+function translateMemberType(type: string): string {
+  const labelMap: Record<string, string> = {
+    VISITOR: "Visitante",
+    REGULAR_ATTENDEE: "Frequentador regular",
+    MEMBER: "Membro"
+  }
+
+  return labelMap[type] ?? type
+}
+
+const exportHeaders = [
+  "Tipo de Linha",
+  "Tipo de Relacionamento",
+  "Visitante Principal (nome)",
+  "Nome",
+  "Data de Nascimento",
+  "Telefone",
+  "Tipo de Membro",
+  "Igreja Atual",
+  "Como Conheceu",
+  "Pedido de Oracao",
+  "Data de Cadastro"
+] as const
+
+type ExportHeader = (typeof exportHeaders)[number]
+type ExportRow = Record<ExportHeader, string>
+
+function createPrincipalRow(
+  visitante: Awaited<ReturnType<typeof listVisitantesForExportRepository>>[number]
+): ExportRow {
+  return {
+    "Tipo de Linha": "Visitante",
+    "Tipo de Relacionamento": "",
+    "Visitante Principal (nome)": visitante.name,
+    Nome: visitante.name,
+    "Data de Nascimento": formatCivilDate(visitante.birthDate),
+    Telefone: visitante.phone ? formatPhone(visitante.phone) : "",
+    "Tipo de Membro": translateMemberType(visitante.type),
+    "Igreja Atual": translateActualChurch(visitante.visitorProfile?.actualChurch ?? ""),
+    "Como Conheceu": translateHowKnow(visitante.visitorProfile?.howKnow ?? ""),
+    "Pedido de Oracao": visitante.memberPrays[0]?.pray.text ?? "",
+    "Data de Cadastro": formatDateTime(visitante.createdAt)
+  }
+}
+
+function createFamilyRow(
+  visitante: Awaited<ReturnType<typeof listVisitantesForExportRepository>>[number],
+  relationship: Awaited<ReturnType<typeof listVisitantesForExportRepository>>[number]["principalRelations"][number]
+): ExportRow {
+  const relatedMember = relationship.relatedMember
+
+  return {
+    "Tipo de Linha": translateRelationshipType(relationship.relationshipType),
+    "Tipo de Relacionamento": translateRelationshipType(relationship.relationshipType),
+    "Visitante Principal (nome)": visitante.name,
+    Nome: relatedMember.name,
+    "Data de Nascimento": formatCivilDate(relatedMember.birthDate),
+    Telefone: relatedMember.phone ? formatPhone(relatedMember.phone) : "",
+    "Tipo de Membro": translateMemberType(relatedMember.type),
+    "Igreja Atual": "",
+    "Como Conheceu": "",
+    "Pedido de Oracao": "",
+    "Data de Cadastro": formatDateTime(relatedMember.createdAt)
+  }
+}
+
 export async function exportVisitantesExcelService(input: ExportVisitantesInput) {
   const visitantes = await listVisitantesForExportRepository(input)
 
   const visitantesSheetData: Array<Array<string>> = [
     [
-      "Visitante ID",
       "Nome",
       "Data de nascimento",
       "Telefone",
-      "Documento",
-      "Batizado",
       "Igreja atual",
       "Como conheceu",
-      "Outra resposta (como conheceu)",
       "Pedido de oracao",
       "Criado em"
     ],
     ...visitantes.map((item) => [
-      item.id,
       item.name,
       formatCivilDate(item.birthDate),
-      item.phone ?? "",
-      item.document ?? "",
-      item.baptized ? "Sim" : "Nao",
+      item.phone ? formatPhone(item.phone) : "",
       translateActualChurch(item.visitorProfile?.actualChurch ?? ""),
       translateHowKnow(item.visitorProfile?.howKnow ?? ""),
-      item.visitorProfile?.howKnowOtherAnswer ?? "",
       item.memberPrays[0]?.pray.text ?? "",
       formatDateTime(item.createdAt)
     ])
@@ -66,35 +125,52 @@ export async function exportVisitantesExcelService(input: ExportVisitantesInput)
 
   const familiaresSheetData: Array<Array<string>> = [
     [
-      "Visitante ID",
-      "Visitante nome",
-      "Relacionamento ID",
-      "Parentesco",
-      "Familiar ID",
-      "Familiar nome",
-      "Familiar data de nascimento",
-      "Familiar telefone"
+      "Nome do visitante",
+      "Parentesco com o visitante",
+      "Nome do familiar",
+      "Data de nascimento do familiar",
+      "Telefone do familiar"
     ],
     ...visitantes.flatMap((item) =>
       item.principalRelations.map((relationship) => [
-        item.id,
         item.name,
-        relationship.id,
         translateRelationshipType(relationship.relationshipType),
-        relationship.relatedMember.id,
         relationship.relatedMember.name,
         formatCivilDate(relationship.relatedMember.birthDate),
-        relationship.relatedMember.phone ?? ""
+        relationship.relatedMember.phone ? formatPhone(relationship.relatedMember.phone) : ""
       ])
     )
   ]
 
+  const baseRows = visitantes.flatMap((visitante) => [
+    createPrincipalRow(visitante),
+    ...visitante.principalRelations.map((relationship) => createFamilyRow(visitante, relationship))
+  ])
+
+  const rowsAsArray = baseRows.map((row) => exportHeaders.map((header) => row[header]))
+  const sheetData: Array<Array<string>> = [Array.from(exportHeaders), ...rowsAsArray]
+
   const workbook = XLSX.utils.book_new()
   const visitantesSheet = XLSX.utils.aoa_to_sheet(visitantesSheetData)
   const familiaresSheet = XLSX.utils.aoa_to_sheet(familiaresSheetData)
+  const allVisitorsSheet = XLSX.utils.aoa_to_sheet(sheetData)
+
+  const lastColumn = XLSX.utils.encode_col(exportHeaders.length - 1)
+  const lastRow = Math.max(sheetData.length, 1)
+  const autoFilterRange = `A1:${lastColumn}${lastRow}`
+
+  allVisitorsSheet["!autofilter"] = { ref: autoFilterRange }
+  allVisitorsSheet["!freeze"] = {
+    xSplit: 0,
+    ySplit: 1,
+    topLeftCell: "A2",
+    activePane: "bottomLeft",
+    state: "frozen"
+  }
 
   XLSX.utils.book_append_sheet(workbook, visitantesSheet, "Visitantes")
   XLSX.utils.book_append_sheet(workbook, familiaresSheet, "Familiares")
+  XLSX.utils.book_append_sheet(workbook, allVisitorsSheet, "Todos os visitantes")
 
   const file = XLSX.write(workbook, {
     bookType: "xlsx",

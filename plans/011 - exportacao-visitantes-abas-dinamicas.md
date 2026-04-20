@@ -163,20 +163,53 @@ test/
 
 ## Status de Execucao
 
-- Estado: `Backlog`
-- Responsavel: `<definir>`
+- Estado: `Concluido`
+- Responsavel: `GitHub Copilot`
 - Ultima atualizacao: `2026-04-20`
 
 ### Checklist de Entrega
 
-- [ ] Schema criado/atualizado
-- [ ] Repository criado/atualizado
-- [ ] Service criado/atualizado
-- [ ] Controller/route criado/atualizado
-- [ ] UI criada/atualizada (quando aplicavel)
-- [ ] Migration criada (quando aplicavel)
-- [ ] `npx prisma generate` executado (quando aplicavel)
-- [ ] Testes adicionados/atualizados
-- [ ] Testes passando
-- [ ] Lint sem erro
-- [ ] Criterios de aceite validados
+- [x] Schema criado/atualizado (nao se aplica nesta SPEC)
+- [x] Repository criado/atualizado
+- [x] Service criado/atualizado
+- [x] Controller/route criado/atualizado
+- [x] UI criada/atualizada (nao se aplica nesta SPEC)
+- [x] Migration criada (nao se aplica nesta SPEC)
+- [x] `npx prisma generate` executado (nao se aplica nesta SPEC)
+- [x] Testes adicionados/atualizados
+- [x] Testes passando
+- [x] Lint sem erro
+- [x] Criterios de aceite validados
+
+## 16. Pos-mortem da Entrega
+
+### 16.1 Resumo do que foi entregue
+
+- A exportacao passou a manter as abas existentes (`Visitantes` e `Familiares`) e adicionar uma terceira aba: `Todos os visitantes`.
+- A aba `Todos os visitantes` concentra a visao consolidada (visitante principal + familiares), com autoFiltro e congelamento de cabecalho.
+- Telefones seguiram com mascara padrao `(xx) xxxxx-xxxx`.
+- A protecao por permissao `VISITANTES_EXPORTAR` foi mantida no endpoint.
+
+### 16.2 Ajustes de escopo aplicados durante a execucao
+
+- Em vez de substituir o layout anterior por duas novas abas (`Analise` e `Dados Base`), foi adotada a estrategia de preservar o formato ja utilizado pelos usuarios e adicionar a aba consolidada.
+- Foram removidos da exportacao os campos: `Documento`, `Batizado`, `Outra resposta (como conheceu)` e `Data de Atualizacao`.
+- Foi mantido o campo `Pedido de oracao`.
+- IDs tecnicos deixaram de ser exibidos nas tabelas exportadas.
+- Cabecalhos da aba de familiares foram padronizados para linguagem mais explicita ao usuario final.
+
+### 16.3 Incidentes tecnicos e correcao
+
+- Houve uma falha de teste por indice de coluna apos a remocao de campos da aba `Visitantes`.
+- Correcao aplicada ajustando os asserts para os novos indices; testes da feature voltaram a passar.
+
+### 16.4 Validacao final executada
+
+- Testes focados da exportacao (service + route) executados com sucesso.
+- Lint executado sem erros.
+
+### 16.5 Aprendizados operacionais
+
+- Para exportacoes consumidas por usuarios recorrentes, preservar abas legadas reduz impacto de uso e retrabalho de treinamento.
+- Em tabelas de exportacao, alteracoes de colunas exigem revisar asserts por indice imediatamente para evitar falso negativo de regressao.
+- Remover campos tecnicos/sensiveis e manter cabecalhos mais descritivos melhora leitura e uso do arquivo por lideranca nao tecnica.

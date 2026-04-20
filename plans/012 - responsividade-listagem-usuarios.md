@@ -101,20 +101,20 @@ Não se aplica — sem lógica de negócio ou validação de entrada.
 
 ## Status de Execucao
 
-- Estado: `Backlog`
-- Responsavel: `<definir>`
+- Estado: `Concluido`
+- Responsavel: `GitHub Copilot`
 - Ultima atualizacao: `2026-04-20`
 
 ### Checklist de Entrega
 
-- [ ] Schema criado/atualizado
-- [ ] Repository criado/atualizado
-- [ ] Service criado/atualizado
-- [ ] Controller/route criado/atualizado
-- [ ] UI criada/atualizada (quando aplicavel)
-- [ ] Migration criada (quando aplicavel)
-- [ ] `npx prisma generate` executado (quando aplicavel)
-- [ ] Testes adicionados/atualizados
-- [ ] Testes passando
-- [ ] Lint sem erro
-- [ ] Criterios de aceite validados
+- [x] Schema criado/atualizado (nao se aplica)
+- [x] Repository criado/atualizado (nao se aplica)
+- [x] Service criado/atualizado (nao se aplica)
+- [x] Controller/route criado/atualizado (nao se aplica)
+- [x] UI criada/atualizada (quando aplicavel)
+- [x] Migration criada (quando aplicavel) (nao se aplica)
+- [x] `npx prisma generate` executado (quando aplicavel) (nao se aplica)
+- [x] Testes adicionados/atualizados (nao se aplica: testes existentes validados)
+- [x] Testes passando
+- [x] Lint sem erro
+- [x] Criterios de aceite validados

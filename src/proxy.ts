@@ -10,9 +10,13 @@ import {
 const PUBLIC_PATHS = [
   "/login",
   "/cadastro",
+  "/esqueci-minha-senha",
+  "/redefinir-senha",
   "/api/auth/sign-in",
   "/api/auth/sign-up",
-  "/api/auth/convite/validate"
+  "/api/auth/convite/validate",
+  "/api/auth/password-reset/request",
+  "/api/auth/password-reset/confirm"
 ]
 
 function isPublicPath(pathname: string): boolean {

@@ -74,13 +74,13 @@ model UserInvite {
   id          String    @id @default(cuid())
   token       String    @unique
   role        Role
-  createdById String
+  createdById String?
   usedAt      DateTime?
   usedById    String?   @unique
   createdAt   DateTime  @default(now())
 
-  createdBy User  @relation("InviteCreatedBy", fields: [createdById], references: [id])
-  usedBy    User? @relation("InviteUsedBy", fields: [usedById], references: [id])
+  createdBy User? @relation("InviteCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  usedBy    User? @relation("InviteUsedBy", fields: [usedById], references: [id], onDelete: SetNull)
 
   @@map("user_invites")
 }
@@ -187,8 +187,8 @@ model MemberMessageLog {
   messageTitle      String
   messageBody       String
   sentAt            DateTime         @default(now())
-  sentByUserId      String
-  sentByUser        User             @relation(fields: [sentByUserId], references: [id])
+  sentByUserId      String?
+  sentByUser        User?            @relation(fields: [sentByUserId], references: [id], onDelete: SetNull)
 
   @@map("member_message_logs")
 }

@@ -171,6 +171,47 @@ shared/constants/route-paths.ts    → constantes de rotas
 
 Exceção: `style` pode ser usado para propriedades dinâmicas calculadas em JS que não têm equivalente em `sx` (ex: posicionamento calculado por biblioteca externa).
 
+### MUI v9 — `slotProps.htmlInput` em vez de `inputProps`
+
+Em MUI v9, `inputProps` em campos `TextField`/`Input` vaza atributos para o DOM e gera warnings nos testes e no browser:
+
+```tsx
+// ERRADO — vaza para o DOM, gera warning
+<TextField inputProps={{ maxLength: 100 }} />
+
+// CORRETO — API atual do MUI v9
+<TextField slotProps={{ htmlInput: { maxLength: 100 } }} />
+```
+
+### Renderização de texto multiline
+
+Para exibir conteúdo com quebras de linha preservadas (ex: preview de mensagem, corpo de template):
+
+```tsx
+// CORRETO — preserva \n como quebra de linha visual
+<Typography sx={{ whiteSpace: "pre-wrap" }}>{body}</Typography>
+
+// ERRADO — colapsa quebras de linha
+<Typography>{body}</Typography>
+```
+
+### URLs para serviços externos
+
+Para gerar URLs de integração (ex: WhatsApp Web, links externos com parâmetros), usar `URL` + `searchParams` + normalização Unicode `NFC`:
+
+```ts
+// CORRETO — robusto com emojis, unicode composto e quebras de linha
+const url = new URL("https://api.whatsapp.com/send")
+url.searchParams.set("phone", phone)
+url.searchParams.set("text", message.normalize("NFC"))
+return url.toString()
+
+// EVITAR — frágil com emojis e unicode fora do plano básico
+return `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`
+```
+
+Registrar no contrato da utilidade qual endpoint externo está em uso para evitar divergência entre código e documentação.
+
 ### Props em Server Components
 
 Nunca passar funções diretamente como props para componentes MUI em Server Components:

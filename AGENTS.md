@@ -123,6 +123,20 @@ export async function createVisitanteRepository(data: CreateVisitanteInput) {
 }
 ```
 
+### Composição de repositories em transação
+
+Repositories que aceitam um client externo (`db: RepositoryClient = prisma`) são compostos por services externos que passam um `prisma.$transaction` ativo. Antes de modificar um repository, verificar todos os callers — adicionar `prisma.$transaction` interno quebra o caller que já passa `tx` externo.
+
+Solução: criar um novo repository dedicado ao invés de alterar o existente quando os callers têm contratos diferentes.
+
+### `onDelete: Cascade` no schema Prisma
+
+Antes de implementar lógica manual de exclusão em cascata, verificar no `prisma/schema.prisma` quais relações já têm `onDelete: Cascade` configurado — o banco já garante a remoção automática dessas entidades. Implementar manualmente o que o banco já resolve é trabalho redundante e introduz risco de divergência.
+
+Ao planejar exclusão em cascata na SPEC, separar explicitamente:
+- entidades cobertas por `onDelete: Cascade` no schema (banco garante)
+- entidades que precisam de lógica manual no repository (ex: órfãos sem cascade)
+
 ---
 
 ## 4) Jobs executam tarefas assíncronas

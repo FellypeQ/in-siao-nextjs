@@ -158,6 +158,19 @@ Object.defineProperty(window, "location", {
 })
 ```
 
+### AppError para simular falha de autenticação (401)
+```ts
+import { AppError } from "@/shared/errors/app-error"
+
+vi.mock("@/lib/require-auth-session", () => ({
+  requireAuthSessionForApi: vi.fn().mockRejectedValue(
+    new AppError("Unauthorized", 401, "UNAUTHORIZED")
+  )
+}))
+```
+
+> `toErrorResponse` verifica `instanceof AppError`. Lançar `Error` simples com `statusCode` resulta em 500, não 401.
+
 ---
 
 ## Padrões de Queries (Testing Library)
@@ -229,6 +242,12 @@ describe("PasswordField", () => {
 5. **`window.location.search` em jsdom**: não usar `window.location.assign()` — redefinir via `Object.defineProperty` com `writable: true`.
 6. **Mocks de sessão devem incluir `permissions`**: ao testar rotas protegidas por permissão, o mock de sessão deve conter o array `permissions` para não causar 403 inesperado.
 7. **`npx prisma generate` antes de testes com Prisma**: qualquer mudança de schema sem regenerar o client causa erros de tipo silenciosos.
+8. **Mock de `AppError` para testar 401**: lançar `Error` simples com propriedades extras não é suficiente — `toErrorResponse` verifica `instanceof AppError`. O mock de sessão que simula falha de autenticação deve lançar `new AppError("...", 401, "UNAUTHORIZED")` para o status HTTP retornar 401 e não 500. (SPEC 007)
+9. **`vi.mocked()` é mais seguro que dynamic import para sobrescrever mock**: ao usar `vi.clearAllMocks()` no `beforeEach`, o mock retorna ao comportamento padrão do `vi.mock()`. Para testes que sobrescrevem o comportamento (ex: `mockRejectedValueOnce`), importar a função mockada no topo do arquivo e usar `vi.mocked(fn).mockRejectedValueOnce(...)` — mais explícito e confiável que `await import(...)` dentro do teste. (SPEC 007)
+10. **MUI v9: `slotProps.htmlInput` em vez de `inputProps`**: `inputProps` vaza para o DOM e gera warning nos testes. Usar `slotProps={{ htmlInput: { ... } }}` alinhado à API atual do MUI. (SPEC 009)
+11. **Fluxos de mensageria exigem caso de teste com emojis e unicode**: incluir teste dedicado com emojis, quebras de linha literais (`\n`) e caracteres inválidos (`U+FFFD`) sempre que o fluxo envolva persistência ou transmissão de texto livre. Validar que o conteúdo chega ao destino sem corrupção. (SPEC 009)
+12. **Alterar colunas de exportação exige revisar asserts por índice no mesmo commit**: remover ou reordenar colunas em exportação Excel invalida asserts de índice silenciosamente (teste passa mas compara valor errado). Revisar imediatamente ao mudar a estrutura da planilha. (SPEC 011)
+13. **Todo endpoint deve ter teste de contrato de autorização**: criar ao menos um teste por endpoint que documente a regra esperada: 401 sem sessão, 403 sem permissão, ou apenas sessão (sem guard de permissão por decisão de negócio). Serve como documentação executável do contrato de segurança. (SPEC 010)
 
 ---
 

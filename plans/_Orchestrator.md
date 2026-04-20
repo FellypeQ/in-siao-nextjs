@@ -140,6 +140,8 @@ Regras adicionais para mudancas de autorizacao/permissao:
 - ao adicionar guard em endpoint existente, atualizar os testes de rota no mesmo PR
 - mocks de sessao em testes devem refletir payload real (incluindo `permissions` quando aplicavel)
 - quando houver mudanca de contrato HTTP (metodo/rota), atualizar testes de contrato na mesma fatia
+- todo endpoint deve ter pelo menos um teste de contrato que documente explicitamente a regra de autorizacao esperada (401, 403 ou apenas sessao) (aprendizado 010)
+- em fluxos de mensageria com conteudo livre, incluir caso de teste com emojis, quebras de linha e caracteres invalidos (`U+FFFD`) (aprendizado 009)
 
 ---
 
@@ -279,6 +281,11 @@ Antes de iniciar implementacao, validar:
 - a SPEC esta alinhada com os metodos/rotas reais existentes no codigo atual?
 - se houver auth/sessao/permissao, a entrega cobre UI condicional e guard na API?
 - se houver mudanca no payload de sessao, existe estrategia de compatibilidade retroativa?
+- se houver endpoints sensiveis vs. nao sensiveis, as excecoes de autorizacao estao explicitas nos requisitos e criterios de aceite? (aprendizado 010)
+- se houver exclusao em cascata, os `onDelete: Cascade` do schema Prisma estao mapeados na SPEC, separando o que o banco ja garante do que precisa de logica manual? (aprendizado 008)
+- se houver repository a ser modificado, todos os callers foram verificados para detectar uso em transacao externa? (aprendizado 008)
+- se houver fluxo de mensageria com placeholders dinamicos, a fonte de verdade dos tokens esta definida na SPEC antes de implementar? (aprendizado 009)
+- o estado real do codigo existente foi confirmado antes de incluir itens no plano de implementacao? (aprendizado 007)
 
 Se qualquer resposta for `nao`, ajustar a SPEC antes de codar.
 
@@ -293,6 +300,42 @@ Se qualquer resposta for `nao`, ajustar a SPEC antes de codar.
 5. Permissionamento robusto depende de duas camadas: ocultacao de UI para UX e guard server-side para seguranca.
 6. Ao introduzir guard em endpoint ja existente, atualizar testes de rota no mesmo ciclo para evitar regressao.
 7. Fechamento de SPEC com banco deve sempre validar disponibilidade do banco, status de migration e smoke test de rotas criticas.
+
+---
+
+## 13. Aprendizados consolidados (SPEC 007 a 012)
+
+### Banco e Repositories
+
+1. **`onDelete: Cascade` ja e contrato do banco**: ao planejar exclusao em cascata, mapear na SPEC quais relacoes ja tem `onDelete: Cascade` no schema Prisma (banco garante) vs. o que precisa de logica manual no repository. Evita reimplementar o que o banco ja resolve e dirige atencao para os gaps reais (ex: entidades orfas sem cascade). (SPEC 008)
+
+2. **Verificar callers antes de modificar repository**: o pattern `(db: RepositoryClient = prisma)` em um repository indica que ele e composto externamente em transacoes. Modificar ou adicionar `prisma.$transaction` interno pode quebrar callers que passam `tx` proprio. Solucao: criar novo repository dedicado em vez de alterar o existente. (SPEC 008)
+
+3. **Exclusao de entidades relacionadas por orfandade**: ao excluir uma entidade principal, entidades relacionadas devem ser removidas somente se ficarem orfas — sem outros vinculos validos. Definir explicitamente na SPEC o comportamento: `cascade`, `unlink` ou `delete-if-orphan`. (SPEC 009)
+
+### Autorizacao e Permissoes
+
+4. **Congelar excecoes de autorizacao antes de codar**: validar e congelar quais endpoints sao sensiveis vs. nao sensiveis (ex: dado agregado sem PII nao precisa de guard de permissao) antes de iniciar implementacao. Mudancas no criterio de autorizacao no meio da execucao geram retrabalho em testes. Registrar excecoes ja nos requisitos e criterios de aceite. (SPEC 010)
+
+5. **Teste de contrato de autorizacao por endpoint**: manter ao menos um teste por endpoint que documente explicitamente a regra de autorizacao esperada: 401 (sem sessao), 403 (sem permissao) ou apenas sessao. Isso serve como documentacao executavel do contrato de seguranca. (SPEC 010)
+
+### Fluxos de Mensageria
+
+6. **Fonte unica de verdade para placeholders**: em fluxos com substituicao de tokens dinamicos (ex: `{nome_do_visitante}`), definir o token canônico na SPEC antes de implementar. Divergencias entre SPEC, schema, service e formulario causam comportamento inconsistente. (SPEC 009)
+
+7. **Protecao de conteudo com emoji e texto livre e ponta a ponta**: conteudo com emojis, quebras de linha e unicode pode ser corrompido em qualquer camada. Validar no schema (bloquear `U+FFFD`), no formulario (controle de input) e no service (antes de persistir). Cobrir com caso de teste dedicado. (SPEC 009)
+
+8. **Regra de sequencia de envio deve ser server-side**: validar apenas "nao foi enviado" nao e suficiente para fluxos ordenados. O service deve validar que o template recebido e a proxima mensagem pendente na sequencia, nao qualquer template nao enviado. (SPEC 009)
+
+9. **Geracao de URL para servicos externos**: usar `URL` + `searchParams` + `normalize("NFC")` para URLs de integracao (ex: WhatsApp Web). Encoding manual com `encodeURIComponent` direto e fragil com emojis e unicode composto. Registrar no contrato da utilidade qual endpoint externo esta em uso. (SPEC 009)
+
+### Planejamento e Execucao
+
+10. **Confirmar estado real do codigo antes de planejar**: verificar o estado atual dos arquivos existentes antes de incluir itens no plano de implementacao. Codigo ja implementado corretamente nao precisa de retrabalho e cria confusao se incluido no plano. (SPEC 007, 008)
+
+11. **Exportacoes com usuarios recorrentes**: para funcionalidades de exportacao ja em uso, preservar o formato e as abas legadas ao evoluir. Quebrar formato existente gera retrabalho de adocao. Adicionar novas abas e preferivel a substituir as existentes. (SPEC 011)
+
+12. **Alterar colunas de exportacao exige atualizar asserts por indice imediatamente**: remover ou reordenar colunas em exportacao Excel invalida asserts de indice. Revisar os testes de exportacao no mesmo commit da mudanca de colunas. (SPEC 011)
 
 ---
 

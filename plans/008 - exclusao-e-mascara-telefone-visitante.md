@@ -192,20 +192,43 @@ test/
 
 ## Status de Execucao
 
-- Estado: `Backlog`
-- Responsavel: `<definir>`
+- Estado: `Concluido`
+- Responsavel: `Claude Sonnet 4.6`
 - Ultima atualizacao: `2026-04-20`
 
 ### Checklist de Entrega
 
-- [ ] Schema criado/atualizado
-- [ ] Repository criado/atualizado
-- [ ] Service criado/atualizado
-- [ ] Controller/route criado/atualizado
-- [ ] UI criada/atualizada (quando aplicavel)
-- [ ] Migration criada (quando aplicavel)
-- [ ] `npx prisma generate` executado (quando aplicavel)
-- [ ] Testes adicionados/atualizados
-- [ ] Testes passando
-- [ ] Lint sem erro
-- [ ] Criterios de aceite validados
+- [x] Schema criado/atualizado — sem alteração de schema (cascatas via Prisma já existentes)
+- [x] Repository criado/atualizado — `delete-visitante.repository.ts` criado com transação e limpeza de Pray órfão
+- [x] Service criado/atualizado — `delete-visitante.service.ts` atualizado para usar novo repository
+- [x] Controller/route criado/atualizado — `DELETE /api/visitantes/[id]` já estava correto com guard `VISITANTES_EXCLUIR`
+- [x] UI criada/atualizada — `PhoneField`, `format-phone.ts`, `visitante-form.tsx`, `visitantes-list.tsx`
+- [x] Migration criada — não aplicável (sem mudança de schema)
+- [x] `npx prisma generate` executado — não aplicável (sem mudança de schema)
+- [x] Testes adicionados/atualizados — 4 novos arquivos de teste (service, route DELETE, PhoneField, formatPhone)
+- [x] Testes passando — 111 testes, 37 arquivos, 0 falhas
+- [x] Lint sem erro — `eslint` exit 0
+- [x] Criterios de aceite validados — CA-01 a CA-06 cobertos
+
+---
+
+## Pos-Mortem (SPEC 008)
+
+### O que foi bem
+
+- **Cascatas do schema já resolviam 80% do problema**: `MemberVisitor`, `MemberPray` e `MemberRelationship` já tinham `onDelete: Cascade` configurado no schema Prisma. A exclusão do `Member` já limpava esses registros automaticamente. O único gap real era o `Pray` órfão.
+- **Separação de repository limpa**: a decisão de criar `delete-visitante.repository.ts` separado (em vez de modificar `delete-member.repository.ts`) foi correta — preservou o uso do repositório original na `update-visitante.service.ts`, que o chama com um `tx` externo para excluir familiares desvinculados.
+- **Controller já estava correto**: a rota `DELETE /api/visitantes/[id]` já existia com guard de permissão `VISITANTES_EXCLUIR`. Zero retrabalho de controller.
+- **PhoneField sem dependência externa**: implementação pura com regex/replace, alinhada ao RNF-01.
+- **formatPhone com suporte a 10 e 11 dígitos**: a SPEC mencionava ambos os formatos; a função diferencia celular (11 dígitos: `(xx) xxxxx-xxxx`) de fixo (10 dígitos: `(xx) xxxx-xxxx`).
+
+### O que foi diferente do planejado
+
+- **`delete-member.repository.ts` tem dois callers**: a SPEC assumia que o único caller era o service de exclusão de visitante. Na prática, `update-visitante.service.ts` também usa o mesmo repository para excluir membros familiares desvinculados, passando um `tx` externo. Isso impediu modificar o repository existente — foi necessário criar um novo `delete-visitante.repository.ts` com a transação interna.
+- **A SPEC nomeava o repository como `delete-visitante.repository.ts`** mas o código existente usava `delete-member.repository.ts`. O novo arquivo foi criado com o nome da SPEC, mantendo o antigo intacto.
+
+### Aprendizados para SPECs futuras
+
+- Antes de propor alteração em um repository, verificar todos os callers — o pattern `(db: RepositoryClient = prisma)` sinaliza que o repository é composto externamente em transações.
+- A presença de `onDelete: Cascade` no schema Prisma deve ser mapeada explicitamente na SPEC para evitar implementar manualmente o que o banco já garante.
+- Ao especificar o plano de exclusão em cascata, listar também quais entidades JÁ são cobertas por cascade do banco, separando do que precisa de lógica manual.

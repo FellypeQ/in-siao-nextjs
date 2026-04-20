@@ -13,6 +13,7 @@ import {
   type HowKnowValue,
   type RelationshipTypeValue
 } from "@/frontend/features/visitantes/constants/visitante-enum-translations"
+import { PhoneField } from "@/frontend/components/inputs/phone-field"
 import {
   Alert,
   Box,
@@ -387,10 +388,10 @@ export function VisitanteForm({ mode, visitanteId, permissions = [], role = "STA
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 3 }}>
-                <TextField
+                <PhoneField
                   label="Telefone/WhatsApp"
                   value={state.phone}
-                  onChange={(event) => updateState("phone", event.target.value)}
+                  onChange={(digits) => updateState("phone", digits)}
                   fullWidth
                 />
               </Grid>
@@ -513,10 +514,10 @@ export function VisitanteForm({ mode, visitanteId, permissions = [], role = "STA
                         />
                       </Grid>
                       <Grid size={{ xs: 12, md: 3 }}>
-                        <TextField
+                        <PhoneField
                           label="Telefone"
                           value={member.phone}
-                          onChange={(event) => updateFamily(member.localId, { phone: event.target.value })}
+                          onChange={(digits) => updateFamily(member.localId, { phone: digits })}
                           fullWidth
                         />
                       </Grid>

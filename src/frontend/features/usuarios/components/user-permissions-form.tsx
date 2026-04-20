@@ -29,6 +29,8 @@ const permissionLabels: Record<PermissionKey, string> = {
   VISITANTES_EXCLUIR: "Excluir visitantes",
   VISITANTES_EXPORTAR: "Exportar visitantes",
   CULTO_INFANTIL_SELECIONAR: "Selecionar no culto infantil",
+  MENSAGENS_GERENCIAR: "Gerenciar mensagens",
+  MENSAGENS_ENVIAR: "Enviar mensagens"
 };
 
 export function UserPermissionsForm({

@@ -24,6 +24,7 @@ import {
   translateRelationshipType
 } from "@/frontend/features/visitantes/constants/visitante-enum-translations"
 import { ExportVisitantesButton } from "@/frontend/features/visitantes/components/export-visitantes-button"
+import { VisitanteMensagensStepper } from "@/frontend/features/visitantes/components/visitante-mensagens-stepper"
 import { usePermissions } from "@/frontend/shared/hooks/use-permissions"
 import { formatPhone } from "@/frontend/shared/utils/format-phone"
 import { Permission } from "@/shared/constants/permissions"
@@ -117,6 +118,8 @@ export function VisitantesList({ role, permissions }: VisitantesListProps) {
   const canCreateVisitante = can(Permission.VISITANTES_CADASTRAR)
   const canEditVisitante = can(Permission.VISITANTES_EDITAR)
   const canDeleteVisitante = can(Permission.VISITANTES_EXCLUIR)
+  const canEnviarMensagem = can(Permission.MENSAGENS_ENVIAR)
+  const canVerMensagens = canEnviarMensagem || can(Permission.MENSAGENS_GERENCIAR)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
@@ -391,6 +394,17 @@ export function VisitantesList({ role, permissions }: VisitantesListProps) {
                   )}
                 </Stack>
               </Box>
+
+              {canVerMensagens && selectedId && (
+                <Box>
+                  <Typography sx={{ fontWeight: 700, mb: 1 }}>Fluxo de mensagens</Typography>
+                  <VisitanteMensagensStepper
+                    visitanteId={selectedId}
+                    visitantePhone={selected.member.phone}
+                    canEnviar={canEnviarMensagem}
+                  />
+                </Box>
+              )}
             </Stack>
           )}
         </DialogContent>

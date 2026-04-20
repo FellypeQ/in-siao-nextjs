@@ -12,7 +12,7 @@ Permitir que a equipe gerencie um fluxo ordenado de mensagens para visitantes, a
 
 ### 3.1 Em escopo
 
-- Criação de model `MessageTemplate` (título, corpo com suporte a `{nome_do_usuario}`, ordem, soft delete)
+- Criação de model `MessageTemplate` (título, corpo com suporte a `{nome_do_visitante}`, ordem, soft delete)
 - Criação de model `MemberMessageLog` (registro imutável de cada mensagem enviada, com snapshot de título e corpo processado)
 - Novas permissões: `MENSAGENS_GERENCIAR` e `MENSAGENS_ENVIAR`
 - Tela de gerenciamento de templates de mensagem (`/mensagens`) — requer `MENSAGENS_GERENCIAR`
@@ -20,7 +20,7 @@ Permitir que a equipe gerencie um fluxo ordenado de mensagens para visitantes, a
 - Stepper MUI no detalhe do visitante exibindo mensagens enviadas e próximas
 - Botão "Enviar próxima mensagem" no detalhe do visitante — requer `MENSAGENS_ENVIAR`
 - Ao clicar em enviar: diálogo de confirmação com preview da mensagem → após confirmar, registra o envio no banco e abre WhatsApp Web
-- Substituição de `{nome_do_usuario}` pelo primeiro nome do visitante (primeiro token do `split(" ")` do campo `name`)
+- Substituição de `{nome_do_visitante}` pelo primeiro nome do visitante (primeiro token do `split(" ")` do campo `name`)
 - Exclusão de template: soft delete se template já foi enviado a algum visitante; hard delete se nunca enviado
 - Ao excluir (soft): template não aparece mais no fluxo de novos envios, mas aparece no histórico de visitantes que já o receberam
 
@@ -35,13 +35,13 @@ Permitir que a equipe gerencie um fluxo ordenado de mensagens para visitantes, a
 ## 4. Requisitos Funcionais
 
 - **RF-01**: Cadastrar, editar e excluir templates de mensagem com título, corpo e ordem
-- **RF-02**: Corpo do template suporta placeholder `{nome_do_usuario}` que é substituído pelo primeiro nome do visitante no momento do envio
+- **RF-02**: Corpo do template suporta texto livre com múltiplos parágrafos, emojis e o placeholder opcional `{nome_do_visitante}`, substituído pelo primeiro nome do visitante no momento do envio; se o placeholder não estiver presente, o corpo é enviado sem modificação
 - **RF-03**: Exclusão de template: soft delete se `MemberMessageLog` referencia o template; hard delete se nunca enviado
 - **RF-04**: Listagem de templates na tela `/mensagens` exibe somente templates ativos (não soft-deleted), ordenados por `order`
 - **RF-05**: Stepper no detalhe do visitante exibe todos os templates ativos em ordem; marca como concluídos os que possuem `MemberMessageLog` para o visitante
 - **RF-06**: "Próxima mensagem" = primeiro template ativo (não soft-deleted) que ainda não foi enviado ao visitante (por `MemberMessageLog`)
 - **RF-07**: Botão "Enviar próxima mensagem" abre diálogo com preview do título, corpo processado e número de telefone do visitante
-- **RF-08**: Ao confirmar no diálogo: cria `MemberMessageLog` (com snapshot do título e corpo processado) e abre WhatsApp Web (`https://wa.me/55<dígitos>?text=<corpo_codificado>`)
+- **RF-08**: Ao confirmar no diálogo: cria `MemberMessageLog` (com snapshot do título e corpo processado) e abre WhatsApp Web usando `generateWhatsAppLink("55" + phone, processedBody)` de `frontend/shared/utils/generate-whatsapp-link.ts`
 - **RF-09**: Card "Mensagens" adicionado à home de visitantes (SPEC 007), visível para usuários com `MENSAGENS_GERENCIAR` ou `MENSAGENS_ENVIAR`
 - **RF-10**: `MENSAGENS_GERENCIAR` e `MENSAGENS_ENVIAR` adicionados às constantes de permissões e ao `PERMISSIONS_BY_MODULE`
 
@@ -49,9 +49,10 @@ Permitir que a equipe gerencie um fluxo ordenado de mensagens para visitantes, a
 
 - **RNF-01**: `MemberMessageLog` é imutável após criação — representa fato histórico de envio
 - **RNF-02**: Soft delete via campo `deletedAt: DateTime?` em `MessageTemplate`
-- **RNF-03**: WhatsApp Web URL usa `encodeURIComponent` no corpo da mensagem
-- **RNF-04**: Snapshot do corpo é o texto já processado (com nome substituído) — não o template raw
-- **RNF-05**: Número de telefone para WhatsApp: `55` + dígitos armazenados (sem formatação)
+- **RNF-03**: Geração do link WhatsApp via utilitário `generateWhatsAppLink(phone, message)` já existente em `frontend/shared/utils/generate-whatsapp-link.ts` — recebe o telefone com prefixo `55` + dígitos armazenados e aplica `encodeURIComponent` internamente
+- **RNF-04**: Snapshot do corpo é o texto já processado (com nome substituído se presente) — não o template raw
+- **RNF-07**: `body` é armazenado com quebras de linha literais (`\n`); o formulário de template usa `TextField multiline`; o preview no diálogo de envio usa `whiteSpace: "pre-wrap"` para renderizar parágrafos corretamente; `encodeURIComponent` converte `\n` em `%0A`, que o WhatsApp renderiza como quebra de linha
+- **RNF-05**: Número de telefone passado ao utilitário: `"55" + dígitos armazenados` (ex: `"5511999999999"`) — o utilitário já remove não-dígitos
 - **RNF-06**: Tela `/mensagens` protegida por `MENSAGENS_GERENCIAR`; botão de envio no detalhe do visitante protegido por `MENSAGENS_ENVIAR`
 
 ## 6. Modelagem de Dados (quando aplicavel)
@@ -130,10 +131,10 @@ Adicionadas ao módulo `"Mensagens"` em `PERMISSIONS_BY_MODULE`.
 
 1. Usuário clica "Enviar próxima mensagem" (requer `MENSAGENS_ENVIAR`)
 2. Sistema identifica próxima mensagem pendente
-3. Processa corpo: substitui `{nome_do_usuario}` pelo primeiro nome do visitante
+3. Processa corpo: substitui `{nome_do_visitante}` pelo primeiro nome do visitante
 4. Abre diálogo com preview: título, corpo processado, telefone do visitante
 5. Usuário confirma → `POST /api/visitantes/[id]/mensagens` (cria log com snapshot)
-6. Após resposta 201 → abre WhatsApp Web em nova aba com URL codificada
+6. Após resposta 201 → chama `generateWhatsAppLink("55" + visitante.phone, processedBody)` e abre o link em nova aba (`window.open(link, "_blank")`)
 7. Frontend atualiza stepper com o novo passo concluído
 
 ## 8. Contratos de Camadas (Arquitetura)
@@ -146,6 +147,14 @@ Adicionadas ao módulo `"Mensagens"` em `PERMISSIONS_BY_MODULE`.
 - **Service** `update-message-template.service.ts`: atualiza título, corpo ou order
 - **Service** `delete-message-template.service.ts`: decide soft vs hard delete
 - **Repositories**: espelham cada service
+
+### Utilitário de link WhatsApp
+- **`frontend/shared/utils/generate-whatsapp-link.ts`** (já existe): `generateWhatsAppLink(phone, message)` — strip de não-dígitos no telefone + `encodeURIComponent` na mensagem (preserva `\n` como `%0A`, que o WhatsApp renderiza como quebra de linha)
+- Chamada no `enviar-mensagem-dialog.tsx` após o 201: `generateWhatsAppLink("55" + visitante.phone, processedBody)`
+
+### Componentes de UI — requisitos de formatação
+- **`message-template-form.tsx`**: campo `body` usa `TextField multiline minRows={6}` para permitir edição de mensagens com múltiplos parágrafos
+- **`enviar-mensagem-dialog.tsx`**: preview do corpo usa `Typography` com `sx={{ whiteSpace: "pre-wrap" }}` para renderizar quebras de linha; botão de confirmação abre o link via `window.open(link, "_blank", "noopener,noreferrer")`
 
 ### Módulo `visitantes` (extensão)
 - **Controller** `api/visitantes/[id]/mensagens/route.ts`: GET (histórico + próxima) + POST (log envio)
@@ -246,6 +255,8 @@ src/
   shared/
     constants/
       permissions.ts                            ← adicionar MENSAGENS_GERENCIAR + MENSAGENS_ENVIAR [MODIFICADO]
+    utils/
+      generate-whatsapp-link.ts                 ← [JÁ EXISTE] usado em enviar-mensagem-dialog.tsx
 
   prisma/
     schema.prisma                               ← [MODIFICADO] novos models
@@ -283,11 +294,11 @@ test/
 
 ### Schema `message-template.schema.ts`
 - `title`: string, min 1, max 100
-- `body`: string, min 1, max 2000
+- `body`: string, min 1, max 4000 — acomoda mensagens longas com múltiplos parágrafos e emojis
 - `order`: number inteiro positivo (opcional no create — calculado automaticamente)
 
 ### Regras de negócio
-- `{nome_do_usuario}` no corpo é substituído pelo primeiro token de `Member.name.split(" ")[0]` antes do envio
+- `{nome_do_visitante}` é opcional — se presente no corpo, é substituído pelo primeiro token de `Member.name.split(" ")[0]` antes do envio; se ausente, `processedBody` = `body` sem alteração
 - Soft delete: `deletedAt = now()` — template permanece no banco mas é excluído das queries de templates ativos
 - Hard delete: remoção física — somente se `count(MemberMessageLog where messageTemplateId = id) === 0`
 - `nextTemplate`: primeiro template ativo (`deletedAt = null`) ordenado por `order`, cujo `id` não está em nenhum `MemberMessageLog.messageTemplateId` do visitante
@@ -295,7 +306,8 @@ test/
 ## 12. Criterios de Aceite
 
 - **CA-01** (RF-01): Dado usuário com `MENSAGENS_GERENCIAR`, quando acessa `/mensagens`, então vê a listagem de templates ativos ordenados
-- **CA-02** (RF-02): Dado template com `{nome_do_usuario}` no corpo, quando enviado para visitante "Maria Silva", então o log salva "Maria" substituído
+- **CA-02a** (RF-02): Dado template com `{nome_do_visitante}` no corpo, quando enviado para visitante "Maria Silva", então o log salva "Maria" substituído
+- **CA-02b** (RF-02): Dado template sem `{nome_do_visitante}` no corpo (ex: mensagem longa com emojis e parágrafos), quando enviado, então o log salva o corpo exatamente como escrito, com quebras de linha preservadas
 - **CA-03** (RF-03): Dado template nunca enviado, quando excluído, então é removido fisicamente do banco
 - **CA-04** (RF-03): Dado template já enviado a um visitante, quando excluído, então `deletedAt` é preenchido e não aparece mais na listagem de templates ativos
 - **CA-05** (RF-04): Dado template soft-deleted, quando usuário acessa `/mensagens`, então ele NÃO aparece na listagem
@@ -344,7 +356,7 @@ test/
 
 - **Schema** `message-template.schema.ts`: valida campos obrigatórios, min/max de título e corpo
 - **Service** `delete-message-template`: testa hard delete (sem logs), soft delete (com logs)
-- **Service** `log-mensagem-visitante`: substitui `{nome_do_usuario}`, cria snapshot correto, falha se não há próxima mensagem
+- **Service** `log-mensagem-visitante`: substitui `{nome_do_visitante}`, cria snapshot correto, falha se não há próxima mensagem
 - **Service** `get-visitante-mensagens`: retorna templates ativos, identifica corretamente `nextTemplate`
 - **Controller** `api/mensagens/route.ts`: GET (200 lista), POST (201 criado, 400 inválido, 403 sem permissão)
 - **Controller** `api/mensagens/[id]/route.ts`: DELETE (200 hard, 200 soft, 403, 404)
@@ -354,20 +366,45 @@ test/
 
 ## Status de Execucao
 
-- Estado: `Backlog`
-- Responsavel: `<definir>`
+- Estado: `Concluido`
+- Responsavel: `GitHub Copilot`
 - Ultima atualizacao: `2026-04-20`
 
 ### Checklist de Entrega
 
-- [ ] Schema criado/atualizado
-- [ ] Repository criado/atualizado
-- [ ] Service criado/atualizado
-- [ ] Controller/route criado/atualizado
-- [ ] UI criada/atualizada (quando aplicavel)
-- [ ] Migration criada (quando aplicavel)
-- [ ] `npx prisma generate` executado (quando aplicavel)
-- [ ] Testes adicionados/atualizados
-- [ ] Testes passando
-- [ ] Lint sem erro
-- [ ] Criterios de aceite validados
+- [x] Schema criado/atualizado
+- [x] Repository criado/atualizado
+- [x] Service criado/atualizado
+- [x] Controller/route criado/atualizado
+- [x] UI criada/atualizada (quando aplicavel)
+- [x] Migration criada (quando aplicavel)
+- [x] `npx prisma generate` executado (quando aplicavel)
+- [x] Testes adicionados/atualizados
+- [x] Testes passando
+- [x] Lint sem erro
+- [x] Criterios de aceite validados
+
+## 16. Pos-mortem (Aprendizados)
+
+### 16.1 Aprendizados tecnicos
+
+- **Placeholder unico e consistente**: houve divergencia inicial entre `{nome_do_usuario}` e `{nome_do_visitante}` em partes da implementacao. Padronizar para `{nome_do_visitante}` em schema, service, formulario e SPEC evitou comportamento inconsistente no processamento da mensagem.
+- **Emoji exige protecao de ponta a ponta**: o link para WhatsApp pode estar correto e, ainda assim, o texto chegar com `�` se o conteudo ja entrou corrompido na origem. Foi necessario proteger no formulario e no schema para bloquear persistencia de texto com caractere de substituicao (`U+FFFD`).
+- **Geracao de URL mais robusta**: para reduzir riscos de encoding manual, a funcao de link foi consolidada com `URL` + `searchParams` e normalizacao Unicode (`NFC`), mantendo quebras de linha e emojis no parametro `text`.
+- **MUI v9 e TextField**: em testes de UI, `inputProps` pode vazar para o DOM e gerar warning. O uso de `slotProps.htmlInput` eliminou o problema e deixou o formulario alinhado com a API atual do MUI.
+- **Regra de sequencia precisa ser server-side**: validar apenas "nao foi enviado" nao basta. O service de log passou a validar explicitamente se o template recebido e a **proxima** mensagem pendente, impedindo envio fora de ordem.
+- **Cleanup explicito de logs no delete de visitante**: para garantir integridade no ciclo de vida da feature, a exclusao de visitante passou a remover `MemberMessageLog` no fluxo de delete.
+- **Exclusao de familiar relacionado exige regra de orfandade**: ao excluir visitante principal, os `relatedMember` nao eram removidos automaticamente. A correcao passou a excluir membros relacionados somente quando ficam sem outros relacionamentos, evitando lixo de dados sem apagar vinculos validos.
+
+### 16.2 Aprendizados de qualidade
+
+- **Testes por camada reduziram retrabalho**: schema + service + route + UI permitiram detectar rapidamente regressao de contrato (ex.: mudanca de endpoint WhatsApp e mudanca de placeholder).
+- **Atualizacao imediata de testes ao mudar contrato**: ao trocar a URL para `api.whatsapp.com/send`, o teste da funcao de link precisou refletir `host`, `pathname` e `phone` para manter cobertura aderente ao comportamento real.
+- **Lint e testes focados antes da suite completa**: validar arquivos alterados primeiro acelerou o ciclo de correcao e reduziu falhas em lote.
+
+### 16.3 Acoes preventivas para proximas SPECs
+
+- Definir placeholders e tokens dinamicos em uma unica fonte de verdade (SPEC + schema + UI) antes de iniciar implementacao.
+- Incluir caso de teste explicito para conteudo com emojis, quebras de linha e caracteres invalidos (`U+FFFD`) sempre que houver fluxo de mensageria.
+- Registrar no contrato da utilidade de link qual endpoint do WhatsApp esta em uso (`wa.me` vs `api.whatsapp.com/send`) para evitar divergencia entre codigo e documentacao.
+- Para fluxos de exclusao com entidades relacionadas, sempre definir no contrato se o comportamento e `cascade`, `unlink` ou `delete-if-orphan`, e cobrir com teste dedicado de repository.

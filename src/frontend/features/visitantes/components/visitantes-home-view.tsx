@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import GroupAddIcon from "@mui/icons-material/GroupAdd"
 import ListIcon from "@mui/icons-material/List"
+import MessageIcon from "@mui/icons-material/Message"
 import {
   Box,
   Card,
@@ -42,6 +43,10 @@ export function VisitantesHomeView({ permissions, role }: VisitantesHomeViewProp
   const isAdmin = role === "ADMIN"
   const canCadastrar = isAdmin || permissions.includes("VISITANTES_CADASTRAR")
   const canListar = isAdmin || permissions.includes("VISITANTES_LISTAR")
+  const canMensagens =
+    isAdmin ||
+    permissions.includes("MENSAGENS_GERENCIAR") ||
+    permissions.includes("MENSAGENS_ENVIAR")
 
   const [chartData, setChartData] = useState<ChartPoint[]>([])
   const [chartLoading, setChartLoading] = useState(true)
@@ -102,6 +107,26 @@ export function VisitantesHomeView({ permissions, role }: VisitantesHomeViewProp
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       Ver todos os visitantes cadastrados
+                    </Typography>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            </Link>
+          </Grid>
+        )}
+
+        {canMensagens && (
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <Link href="/mensagens" style={{ textDecoration: "none", display: "block", height: "100%" }}>
+              <Card sx={{ height: "100%" }}>
+                <CardActionArea sx={{ height: "100%" }}>
+                  <CardContent sx={{ textAlign: "center", py: 4 }}>
+                    <MessageIcon sx={{ fontSize: 48, color: "primary.main", mb: 1 }} />
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                      Mensagens
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Gerenciar fluxo de envio para visitantes
                     </Typography>
                   </CardContent>
                 </CardActionArea>

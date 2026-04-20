@@ -65,6 +65,7 @@ model User {
   invitesCreated     UserInvite[] @relation("InviteCreatedBy")
   inviteUsed         UserInvite?  @relation("InviteUsedBy")
   permissions        UserPermission[]
+  sentMessageLogs    MemberMessageLog[]
 
   @@map("users")
 }
@@ -109,6 +110,7 @@ model Member {
   memberPrays        MemberPray[]
   principalRelations MemberRelationship[] @relation("PrincipalMember")
   relatedRelations   MemberRelationship[] @relation("RelatedMember")
+  messageLogs        MemberMessageLog[]
 
   @@unique([name, birthDate])
   @@map("members")
@@ -160,4 +162,33 @@ model MemberRelationship {
 
   @@unique([principalMemberId, relatedMemberId, relationshipType])
   @@map("member_relationships")
+}
+
+model MessageTemplate {
+  id        String    @id @default(cuid())
+  title     String
+  body      String
+  order     Int
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  sentLogs  MemberMessageLog[]
+
+  @@map("message_templates")
+}
+
+model MemberMessageLog {
+  id                String           @id @default(cuid())
+  memberId          String
+  member            Member           @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  messageTemplateId String?
+  messageTemplate   MessageTemplate? @relation(fields: [messageTemplateId], references: [id], onDelete: SetNull)
+  messageTitle      String
+  messageBody       String
+  sentAt            DateTime         @default(now())
+  sentByUserId      String
+  sentByUser        User             @relation(fields: [sentByUserId], references: [id])
+
+  @@map("member_message_logs")
 }

@@ -61,6 +61,23 @@ describe("VisitantesHomeView", () => {
     await waitFor(() => {
       expect(screen.getByText("Cadastrar Visitante")).toBeInTheDocument()
       expect(screen.getByText("Listar Visitantes")).toBeInTheDocument()
+      expect(screen.getByText("Mensagens")).toBeInTheDocument()
+    })
+  })
+
+  it("exibe card Mensagens com permissao de envio", async () => {
+    render(<VisitantesHomeView permissions={["MENSAGENS_ENVIAR"]} role="STAFF" />)
+
+    await waitFor(() => {
+      expect(screen.getByText("Mensagens")).toBeInTheDocument()
+    })
+  })
+
+  it("oculta card Mensagens sem permissoes de mensagens", async () => {
+    render(<VisitantesHomeView permissions={["VISITANTES_LISTAR"]} role="STAFF" />)
+
+    await waitFor(() => {
+      expect(screen.queryByText("Mensagens")).not.toBeInTheDocument()
     })
   })
 

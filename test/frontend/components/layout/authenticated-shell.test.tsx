@@ -76,6 +76,7 @@ describe("AuthenticatedShell", () => {
     );
 
     await user.click(screen.getByRole("button", { name: /Maria/i }));
+    expect(screen.getByRole("menuitem", { name: "Meu Perfil" })).toBeInTheDocument();
     await user.click(screen.getByRole("menuitem", { name: "Logout" }));
 
     await waitFor(() => {

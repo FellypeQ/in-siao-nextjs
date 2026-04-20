@@ -5,6 +5,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import HomeIcon from "@mui/icons-material/Home";
 import GroupAddIcon from "@mui/icons-material/GroupAdd";
 import GroupsIcon from "@mui/icons-material/Groups";
+import PersonIcon from "@mui/icons-material/Person";
 import {
   Permission,
   type PermissionKey,
@@ -172,6 +173,16 @@ export function AuthenticatedShell({
               transformOrigin={{ vertical: "top", horizontal: "right" }}
             >
               <MenuItem disabled>{user.email}</MenuItem>
+              <MenuItem
+                component={Link}
+                href="/perfil"
+                onClick={() => setMenuAnchor(null)}
+              >
+                <ListItemIcon>
+                    <PersonIcon fontSize="small" />
+                </ListItemIcon>
+                Meu Perfil
+              </MenuItem>
               <MenuItem
                 onClick={() => {
                   setMenuAnchor(null);

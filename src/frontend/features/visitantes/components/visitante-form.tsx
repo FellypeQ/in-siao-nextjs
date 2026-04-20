@@ -72,6 +72,8 @@ type FamilyOperation =
 type VisitanteFormProps = {
   mode: FormMode
   visitanteId?: string
+  permissions?: string[]
+  role?: "ADMIN" | "STAFF"
 }
 
 type VisitanteFormState = {
@@ -107,7 +109,7 @@ function createFamilyItem(): FamilyFormItem {
   }
 }
 
-export function VisitanteForm({ mode, visitanteId }: VisitanteFormProps) {
+export function VisitanteForm({ mode, visitanteId, permissions = [], role = "STAFF" }: VisitanteFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(mode === "edit")
   const [submitting, setSubmitting] = useState(false)
@@ -288,7 +290,8 @@ export function VisitanteForm({ mode, visitanteId }: VisitanteFormProps) {
           return
         }
 
-        router.push("/visitantes")
+        const canList = role === "ADMIN" || permissions.includes("VISITANTES_LISTAR")
+        router.push(canList ? "/visitantes/listagem" : "/visitantes")
         router.refresh()
         return
       }
@@ -330,7 +333,8 @@ export function VisitanteForm({ mode, visitanteId }: VisitanteFormProps) {
         return
       }
 
-      router.push("/visitantes")
+      const canList = role === "ADMIN" || permissions.includes("VISITANTES_LISTAR")
+      router.push(canList ? "/visitantes/listagem" : "/visitantes")
       router.refresh()
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Erro ao salvar")

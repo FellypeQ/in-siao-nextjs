@@ -29,7 +29,7 @@ export default async function EditarVisitantePage({
         permissions: session.permissions,
       }}
     >
-      <VisitanteForm mode="edit" visitanteId={id} />
+      <VisitanteForm mode="edit" visitanteId={id} permissions={session.permissions} role={session.role} />
     </AuthenticatedShell>
   );
 }

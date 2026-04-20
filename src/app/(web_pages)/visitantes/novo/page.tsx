@@ -21,7 +21,7 @@ export default async function NovoVisitantePage() {
         permissions: session.permissions,
       }}
     >
-      <VisitanteForm mode="create" />
+      <VisitanteForm mode="create" permissions={session.permissions} role={session.role} />
     </AuthenticatedShell>
   );
 }

@@ -1,46 +1,36 @@
-import * as XLSX from "xlsx"
+import * as XLSX from "xlsx";
 
-import { formatPhone } from "@/frontend/shared/utils/format-phone"
+import { formatPhone } from "@/frontend/shared/utils/format-phone";
 import {
   translateActualChurch,
   translateHowKnow,
-  translateRelationshipType
-} from "@/frontend/features/visitantes/constants/visitante-enum-translations"
-import { listVisitantesForExportRepository } from "@/modules/visitantes/repositories/list-visitantes-for-export.repository"
-import type { ExportVisitantesInput } from "@/modules/visitantes/schemas/export-visitantes.schema"
+  translateRelationshipType,
+} from "@/frontend/features/visitantes/constants/visitante-enum-translations";
+import { listVisitantesForExportRepository } from "@/modules/visitantes/repositories/list-visitantes-for-export.repository";
+import type { ExportVisitantesInput } from "@/modules/visitantes/schemas/export-visitantes.schema";
 
 function formatCivilDate(date: Date): string {
-  const year = date.getUTCFullYear()
-  const month = String(date.getUTCMonth() + 1).padStart(2, "0")
-  const day = String(date.getUTCDate()).padStart(2, "0")
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
 
-  return `${day}/${month}/${year}`
+  return `${day}/${month}/${year}`;
 }
 
 function formatIsoDate(date: Date): string {
-  const year = date.getUTCFullYear()
-  const month = String(date.getUTCMonth() + 1).padStart(2, "0")
-  const day = String(date.getUTCDate()).padStart(2, "0")
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
 
-  return `${year}-${month}-${day}`
+  return `${year}-${month}-${day}`;
 }
 
 function formatDateTime(date: Date): string {
   return new Intl.DateTimeFormat("pt-BR", {
     dateStyle: "short",
     timeStyle: "short",
-    timeZone: "UTC"
-  }).format(date)
-}
-
-function translateMemberType(type: string): string {
-  const labelMap: Record<string, string> = {
-    VISITOR: "Visitante",
-    REGULAR_ATTENDEE: "Frequentador regular",
-    MEMBER: "Membro"
-  }
-
-  return labelMap[type] ?? type
+    timeZone: "UTC",
+  }).format(date);
 }
 
 const exportHeaders = [
@@ -50,18 +40,19 @@ const exportHeaders = [
   "Nome",
   "Data de Nascimento",
   "Telefone",
-  "Tipo de Membro",
   "Igreja Atual",
   "Como Conheceu",
   "Pedido de Oracao",
-  "Data de Cadastro"
-] as const
+  "Data de cadastro",
+] as const;
 
-type ExportHeader = (typeof exportHeaders)[number]
-type ExportRow = Record<ExportHeader, string>
+type ExportHeader = (typeof exportHeaders)[number];
+type ExportRow = Record<ExportHeader, string>;
 
 function createPrincipalRow(
-  visitante: Awaited<ReturnType<typeof listVisitantesForExportRepository>>[number]
+  visitante: Awaited<
+    ReturnType<typeof listVisitantesForExportRepository>
+  >[number],
 ): ExportRow {
   return {
     "Tipo de Linha": "Visitante",
@@ -70,37 +61,45 @@ function createPrincipalRow(
     Nome: visitante.name,
     "Data de Nascimento": formatCivilDate(visitante.birthDate),
     Telefone: visitante.phone ? formatPhone(visitante.phone) : "",
-    "Tipo de Membro": translateMemberType(visitante.type),
-    "Igreja Atual": translateActualChurch(visitante.visitorProfile?.actualChurch ?? ""),
+    "Igreja Atual": translateActualChurch(
+      visitante.visitorProfile?.actualChurch ?? "",
+    ),
     "Como Conheceu": translateHowKnow(visitante.visitorProfile?.howKnow ?? ""),
     "Pedido de Oracao": visitante.memberPrays[0]?.pray.text ?? "",
-    "Data de Cadastro": formatDateTime(visitante.createdAt)
-  }
+    "Data de cadastro": formatDateTime(visitante.createdAt),
+  };
 }
 
 function createFamilyRow(
-  visitante: Awaited<ReturnType<typeof listVisitantesForExportRepository>>[number],
-  relationship: Awaited<ReturnType<typeof listVisitantesForExportRepository>>[number]["principalRelations"][number]
+  visitante: Awaited<
+    ReturnType<typeof listVisitantesForExportRepository>
+  >[number],
+  relationship: Awaited<
+    ReturnType<typeof listVisitantesForExportRepository>
+  >[number]["principalRelations"][number],
 ): ExportRow {
-  const relatedMember = relationship.relatedMember
+  const relatedMember = relationship.relatedMember;
 
   return {
     "Tipo de Linha": translateRelationshipType(relationship.relationshipType),
-    "Tipo de Relacionamento": translateRelationshipType(relationship.relationshipType),
+    "Tipo de Relacionamento": translateRelationshipType(
+      relationship.relationshipType,
+    ),
     "Visitante Principal (nome)": visitante.name,
     Nome: relatedMember.name,
     "Data de Nascimento": formatCivilDate(relatedMember.birthDate),
     Telefone: relatedMember.phone ? formatPhone(relatedMember.phone) : "",
-    "Tipo de Membro": translateMemberType(relatedMember.type),
     "Igreja Atual": "",
     "Como Conheceu": "",
     "Pedido de Oracao": "",
-    "Data de Cadastro": formatDateTime(relatedMember.createdAt)
-  }
+    "Data de cadastro": formatDateTime(relatedMember.createdAt),
+  };
 }
 
-export async function exportVisitantesExcelService(input: ExportVisitantesInput) {
-  const visitantes = await listVisitantesForExportRepository(input)
+export async function exportVisitantesExcelService(
+  input: ExportVisitantesInput,
+) {
+  const visitantes = await listVisitantesForExportRepository(input);
 
   const visitantesSheetData: Array<Array<string>> = [
     [
@@ -110,7 +109,7 @@ export async function exportVisitantesExcelService(input: ExportVisitantesInput)
       "Igreja atual",
       "Como conheceu",
       "Pedido de oracao",
-      "Criado em"
+      "Data de cadastro",
     ],
     ...visitantes.map((item) => [
       item.name,
@@ -119,9 +118,9 @@ export async function exportVisitantesExcelService(input: ExportVisitantesInput)
       translateActualChurch(item.visitorProfile?.actualChurch ?? ""),
       translateHowKnow(item.visitorProfile?.howKnow ?? ""),
       item.memberPrays[0]?.pray.text ?? "",
-      formatDateTime(item.createdAt)
-    ])
-  ]
+      formatDateTime(item.createdAt),
+    ]),
+  ];
 
   const familiaresSheetData: Array<Array<string>> = [
     [
@@ -129,7 +128,7 @@ export async function exportVisitantesExcelService(input: ExportVisitantesInput)
       "Parentesco com o visitante",
       "Nome do familiar",
       "Data de nascimento do familiar",
-      "Telefone do familiar"
+      "Telefone do familiar",
     ],
     ...visitantes.flatMap((item) =>
       item.principalRelations.map((relationship) => [
@@ -137,51 +136,64 @@ export async function exportVisitantesExcelService(input: ExportVisitantesInput)
         translateRelationshipType(relationship.relationshipType),
         relationship.relatedMember.name,
         formatCivilDate(relationship.relatedMember.birthDate),
-        relationship.relatedMember.phone ? formatPhone(relationship.relatedMember.phone) : ""
-      ])
-    )
-  ]
+        relationship.relatedMember.phone
+          ? formatPhone(relationship.relatedMember.phone)
+          : "",
+      ]),
+    ),
+  ];
 
   const baseRows = visitantes.flatMap((visitante) => [
     createPrincipalRow(visitante),
-    ...visitante.principalRelations.map((relationship) => createFamilyRow(visitante, relationship))
-  ])
+    ...visitante.principalRelations.map((relationship) =>
+      createFamilyRow(visitante, relationship),
+    ),
+  ]);
 
-  const rowsAsArray = baseRows.map((row) => exportHeaders.map((header) => row[header]))
-  const sheetData: Array<Array<string>> = [Array.from(exportHeaders), ...rowsAsArray]
+  const rowsAsArray = baseRows.map((row) =>
+    exportHeaders.map((header) => row[header]),
+  );
+  const sheetData: Array<Array<string>> = [
+    Array.from(exportHeaders),
+    ...rowsAsArray,
+  ];
 
-  const workbook = XLSX.utils.book_new()
-  const visitantesSheet = XLSX.utils.aoa_to_sheet(visitantesSheetData)
-  const familiaresSheet = XLSX.utils.aoa_to_sheet(familiaresSheetData)
-  const allVisitorsSheet = XLSX.utils.aoa_to_sheet(sheetData)
+  const workbook = XLSX.utils.book_new();
+  const visitantesSheet = XLSX.utils.aoa_to_sheet(visitantesSheetData);
+  const familiaresSheet = XLSX.utils.aoa_to_sheet(familiaresSheetData);
+  const allVisitorsSheet = XLSX.utils.aoa_to_sheet(sheetData);
 
-  const lastColumn = XLSX.utils.encode_col(exportHeaders.length - 1)
-  const lastRow = Math.max(sheetData.length, 1)
-  const autoFilterRange = `A1:${lastColumn}${lastRow}`
+  const lastColumn = XLSX.utils.encode_col(exportHeaders.length - 1);
+  const lastRow = Math.max(sheetData.length, 1);
+  const autoFilterRange = `A1:${lastColumn}${lastRow}`;
 
-  allVisitorsSheet["!autofilter"] = { ref: autoFilterRange }
+  allVisitorsSheet["!autofilter"] = { ref: autoFilterRange };
   allVisitorsSheet["!freeze"] = {
     xSplit: 0,
     ySplit: 1,
     topLeftCell: "A2",
     activePane: "bottomLeft",
-    state: "frozen"
-  }
+    state: "frozen",
+  };
 
-  XLSX.utils.book_append_sheet(workbook, visitantesSheet, "Visitantes")
-  XLSX.utils.book_append_sheet(workbook, familiaresSheet, "Familiares")
-  XLSX.utils.book_append_sheet(workbook, allVisitorsSheet, "Todos os visitantes")
+  XLSX.utils.book_append_sheet(workbook, visitantesSheet, "Visitantes");
+  XLSX.utils.book_append_sheet(workbook, familiaresSheet, "Familiares");
+  XLSX.utils.book_append_sheet(
+    workbook,
+    allVisitorsSheet,
+    "Todos os visitantes",
+  );
 
   const file = XLSX.write(workbook, {
     bookType: "xlsx",
-    type: "array"
-  }) as ArrayBuffer
+    type: "array",
+  }) as ArrayBuffer;
 
-  const dateSuffix = formatIsoDate(new Date())
+  const dateSuffix = formatIsoDate(new Date());
 
   return {
     file,
     fileName: `visitantes-${dateSuffix}.xlsx`,
-    totalVisitantes: visitantes.length
-  }
+    totalVisitantes: visitantes.length,
+  };
 }

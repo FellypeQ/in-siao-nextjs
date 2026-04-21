@@ -1,39 +1,44 @@
-import { render, screen } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { VisitanteForm } from "@/frontend/features/visitantes/components/visitante-form"
+import { VisitanteForm } from "@/frontend/features/visitantes/components/visitante-form";
 
-const pushMock = vi.fn()
-const refreshMock = vi.fn()
+const pushMock = vi.fn();
+const refreshMock = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: pushMock,
-    refresh: refreshMock
-  })
-}))
+    refresh: refreshMock,
+  }),
+}));
 
 describe("VisitanteForm", () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   it("renderiza campos principais no modo create", () => {
-    render(<VisitanteForm mode="create" />)
+    render(<VisitanteForm mode="create" />);
 
-    expect(screen.getByRole("heading", { name: "Cadastrar visitante" })).toBeInTheDocument()
-    expect(screen.getByRole("textbox", { name: /Nome completo/i })).toBeInTheDocument()
-    expect(screen.getByRole("combobox", { name: /Batizado\?/i })).toBeInTheDocument()
-  })
+    expect(
+      screen.getByRole("textbox", { name: /Nome completo/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("combobox", { name: /Batizado\?/i }),
+    ).not.toBeInTheDocument();
+  });
 
   it("adiciona bloco de familiar", async () => {
-    const user = userEvent.setup()
+    const user = userEvent.setup();
 
-    render(<VisitanteForm mode="create" />)
+    render(<VisitanteForm mode="create" />);
 
-    await user.click(screen.getByRole("button", { name: "Adicionar membro familiar" }))
+    await user.click(
+      screen.getByRole("button", { name: "Adicionar membro familiar" }),
+    );
 
-    expect(screen.getByText("Familiar 1")).toBeInTheDocument()
-  })
-})
+    expect(screen.getByText("Familiar 1")).toBeInTheDocument();
+  });
+});

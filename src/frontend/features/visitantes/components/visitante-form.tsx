@@ -31,7 +31,7 @@ import {
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 type FormMode = "create" | "edit";
 
@@ -81,7 +81,6 @@ type VisitanteFormState = {
   name: string;
   birthDate: string;
   phone: string;
-  baptized: "true" | "false";
   actualChurch: ActualChurchValue;
   howKnow: HowKnowValue;
   howKnowOtherAnswer: string;
@@ -92,7 +91,6 @@ const initialState: VisitanteFormState = {
   name: "",
   birthDate: "",
   phone: "",
-  baptized: "false",
   actualChurch: "NONE",
   howKnow: "FRIEND_OR_FAMILY_REFERRAL",
   howKnowOtherAnswer: "",
@@ -147,7 +145,6 @@ export function VisitanteForm({
               name: string;
               birthDate: string;
               phone: string | null;
-              baptized: boolean;
             };
             visitorProfile: {
               actualChurch: VisitanteFormState["actualChurch"];
@@ -178,7 +175,6 @@ export function VisitanteForm({
           name: result.visitante.member.name,
           birthDate: result.visitante.member.birthDate.slice(0, 10),
           phone: result.visitante.member.phone ?? "",
-          baptized: result.visitante.member.baptized ? "true" : "false",
           actualChurch: result.visitante.visitorProfile.actualChurch,
           howKnow: result.visitante.visitorProfile.howKnow,
           howKnowOtherAnswer:
@@ -283,7 +279,6 @@ export function VisitanteForm({
           name: state.name,
           birthDate: state.birthDate,
           phone: state.phone || undefined,
-          baptized: state.baptized === "true",
           actualChurch: state.actualChurch,
           howKnow: state.howKnow,
           howKnowOtherAnswer: state.howKnowOtherAnswer || undefined,
@@ -328,7 +323,6 @@ export function VisitanteForm({
         name: state.name,
         birthDate: state.birthDate,
         phone: state.phone || undefined,
-        baptized: state.baptized === "true",
         actualChurch: state.actualChurch,
         howKnow: state.howKnow,
         howKnowOtherAnswer: state.howKnowOtherAnswer || undefined,
@@ -434,25 +428,6 @@ export function VisitanteForm({
                     onChange={(digits) => updateState("phone", digits)}
                     fullWidth
                   />
-                </Grid>
-
-                <Grid size={{ xs: 12, md: 3 }}>
-                  <TextField
-                    select
-                    label="Batizado?"
-                    value={state.baptized}
-                    onChange={(event) =>
-                      updateState(
-                        "baptized",
-                        event.target.value as "true" | "false",
-                      )
-                    }
-                    required
-                    fullWidth
-                  >
-                    <MenuItem value="true">Sim</MenuItem>
-                    <MenuItem value="false">Nao</MenuItem>
-                  </TextField>
                 </Grid>
 
                 <Grid size={{ xs: 12, md: 5 }}>

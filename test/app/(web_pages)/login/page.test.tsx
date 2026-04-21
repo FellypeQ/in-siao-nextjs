@@ -1,37 +1,43 @@
-import { render, screen } from "@testing-library/react"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import LoginPage from "@/app/(web_pages)/login/page"
+import LoginPage from "@/app/(web_pages)/(public)/login/page";
 
-const pushMock = vi.fn()
-const refreshMock = vi.fn()
+const pushMock = vi.fn();
+const refreshMock = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: pushMock,
-    refresh: refreshMock
+    refresh: refreshMock,
   }),
   useSearchParams: () => ({
-    get: () => null
-  })
-}))
+    get: () => null,
+  }),
+}));
 
 describe("LoginPage", () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   it("renderiza modo login por padrao", () => {
-    render(<LoginPage />)
+    render(<LoginPage />);
 
-    expect(screen.getByRole("heading", { name: "Acesso ao sistema" })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: /entrar/i })).toBeInTheDocument()
-  })
+    expect(
+      screen.getByRole("heading", { name: "Acesso ao sistema" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /entrar/i })).toBeInTheDocument();
+  });
 
   it("nao exibe opcao de cadastro publico", () => {
-    render(<LoginPage />)
+    render(<LoginPage />);
 
-    expect(screen.queryByRole("tab", { name: "Cadastro" })).not.toBeInTheDocument()
-    expect(screen.queryByRole("button", { name: "Criar cadastro" })).not.toBeInTheDocument()
-  })
-})
+    expect(
+      screen.queryByRole("tab", { name: "Cadastro" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Criar cadastro" }),
+    ).not.toBeInTheDocument();
+  });
+});

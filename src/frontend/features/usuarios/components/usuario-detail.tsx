@@ -85,10 +85,6 @@ export function UsuarioDetail({ usuarioId }: UsuarioDetailProps) {
 
   return (
     <Stack spacing={2.5}>
-      <Typography variant="h4" sx={{ fontWeight: 800 }}>
-        Detalhes do usuario
-      </Typography>
-
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
       <Card>

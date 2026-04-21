@@ -1,16 +1,10 @@
 import { AuthenticatedShell } from "@/frontend/components/layout/authenticated-shell";
-import { UsuarioDetail } from "@/frontend/features/usuarios/components/usuario-detail";
+import { InnerPageContent } from "@/frontend/components/layout/inner-page-content";
+import { UsuariosTable } from "@/frontend/features/usuarios/components/usuarios-table";
 import { requireAdminSession } from "@/lib/require-admin-session";
 
-type UsuarioDetailPageProps = {
-  params: Promise<{ id: string }>;
-};
-
-export default async function UsuarioDetailPage({
-  params,
-}: UsuarioDetailPageProps) {
+export default async function UsuariosPage() {
   const session = await requireAdminSession();
-  const { id } = await params;
 
   return (
     <AuthenticatedShell
@@ -21,7 +15,9 @@ export default async function UsuarioDetailPage({
         permissions: session.permissions,
       }}
     >
-      <UsuarioDetail usuarioId={id} />
+      <InnerPageContent>
+        <UsuariosTable currentUserId={session.sub} />
+      </InnerPageContent>
     </AuthenticatedShell>
   );
 }

@@ -75,10 +75,6 @@ export function PerfilView() {
 
   return (
     <Stack spacing={2.5}>
-      <Typography variant="h4" sx={{ fontWeight: 800 }}>
-        Meu Perfil
-      </Typography>
-
       <Alert severity="info">
         Depois de alterar seus dados pessoais, faça logout e login para
         atualizar o nome exibido na sessao atual.

@@ -1,4 +1,5 @@
 import { AuthenticatedShell } from "@/frontend/components/layout/authenticated-shell";
+import { InnerPageContent } from "@/frontend/components/layout/inner-page-content";
 import { VisitanteForm } from "@/frontend/features/visitantes/components/visitante-form";
 import { requireAuthSession } from "@/lib/require-auth-session";
 import { Permission } from "@/shared/constants/permissions";
@@ -29,7 +30,14 @@ export default async function EditarVisitantePage({
         permissions: session.permissions,
       }}
     >
-      <VisitanteForm mode="edit" visitanteId={id} permissions={session.permissions} role={session.role} />
+      <InnerPageContent header={{ title: "Editar Visitante" }}>
+        <VisitanteForm
+          mode="edit"
+          visitanteId={id}
+          permissions={session.permissions}
+          role={session.role}
+        />
+      </InnerPageContent>
     </AuthenticatedShell>
   );
 }

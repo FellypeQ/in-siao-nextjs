@@ -1,8 +1,9 @@
 import { AuthenticatedShell } from "@/frontend/components/layout/authenticated-shell";
-import { PerfilView } from "@/frontend/features/perfil/components/perfil-view";
+import { InnerPageContent } from "@/frontend/components/layout/inner-page-content";
+import { HomePageView } from "@/frontend/features/home/components/home-page-view";
 import { requireAuthSession } from "@/lib/require-auth-session";
 
-export default async function PerfilPage() {
+export default async function HomePage() {
   const session = await requireAuthSession();
 
   return (
@@ -14,7 +15,9 @@ export default async function PerfilPage() {
         permissions: session.permissions,
       }}
     >
-      <PerfilView />
+      <InnerPageContent>
+        <HomePageView />
+      </InnerPageContent>
     </AuthenticatedShell>
   );
 }

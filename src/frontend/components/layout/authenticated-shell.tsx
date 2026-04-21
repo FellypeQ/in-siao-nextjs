@@ -6,10 +6,7 @@ import HomeIcon from "@mui/icons-material/Home";
 import GroupAddIcon from "@mui/icons-material/GroupAdd";
 import GroupsIcon from "@mui/icons-material/Groups";
 import PersonIcon from "@mui/icons-material/Person";
-import {
-  Permission,
-  type PermissionKey,
-} from "@/shared/constants/permissions";
+import { Permission, type PermissionKey } from "@/shared/constants/permissions";
 import {
   AppBar,
   Avatar,
@@ -144,14 +141,14 @@ export function AuthenticatedShell({
             <MenuIcon />
           </IconButton>
 
-          <Typography
-            component={Link}
-            href="/"
-            variant="h6"
-            sx={{ color: "inherit", textDecoration: "none", fontWeight: 700 }}
-          >
-            Siao
-          </Typography>
+          <Link href="/" style={{ display: "flex", alignItems: "center" }}>
+            <Box
+              component="img"
+              src="/images/logo-siao-branco-sem-fundo.png"
+              alt="Sião"
+              sx={{ height: 36, ml: -5 }}
+            />
+          </Link>
 
           <Box sx={{ ml: "auto" }}>
             <Button
@@ -179,7 +176,7 @@ export function AuthenticatedShell({
                 onClick={() => setMenuAnchor(null)}
               >
                 <ListItemIcon>
-                    <PersonIcon fontSize="small" />
+                  <PersonIcon fontSize="small" />
                 </ListItemIcon>
                 Meu Perfil
               </MenuItem>
@@ -234,7 +231,7 @@ export function AuthenticatedShell({
         </Drawer>
       </Box>
 
-      <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
+      <Box component="main" sx={{ flexGrow: 1, mt: 8 }}>
         {children}
       </Box>
     </Box>

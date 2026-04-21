@@ -29,7 +29,7 @@ export function encryptSurname(value: string): string {
 export function decryptSurname(value: string): string {
   const [ivPart, authTagPart, encryptedPart] = value.split(".");
 
-  if (!ivPart || !authTagPart || !encryptedPart) {
+  if (!ivPart || !authTagPart || encryptedPart === undefined) {
     throw new Error("Sobrenome criptografado invalido");
   }
 

@@ -5,7 +5,7 @@ export function hasPermission(
   session: SessionPayload,
   permission: PermissionKey,
 ): boolean {
-  if (session.role === "ADMIN") {
+  if (session.role === "ADMIN" || session.role === "MASTER") {
     return true;
   }
 

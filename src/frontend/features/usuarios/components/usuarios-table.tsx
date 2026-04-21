@@ -2,6 +2,7 @@
 
 import { DeleteUsuarioDialog } from "@/frontend/features/usuarios/components/delete-usuario-dialog";
 import { GenerateInviteDialog } from "@/frontend/features/usuarios/components/generate-invite-dialog";
+import { ROLE_TRANSLATIONS } from "@/shared/constants/role-translations";
 import {
   Alert,
   Box,
@@ -27,7 +28,7 @@ type UsuarioListItem = {
   nome: string;
   sobrenome: string;
   email: string;
-  role: "ADMIN" | "STAFF";
+  role: "ADMIN" | "STAFF" | "MASTER";
   status: "ATIVO" | "INATIVO";
   deletedAt: string | null;
   createdAt: string;
@@ -35,6 +36,7 @@ type UsuarioListItem = {
 
 type UsuariosTableProps = {
   currentUserId: string;
+  currentUserRole: "ADMIN" | "STAFF" | "MASTER";
 };
 
 function formatDateTime(value: string) {
@@ -44,7 +46,7 @@ function formatDateTime(value: string) {
   }).format(new Date(value));
 }
 
-export function UsuariosTable({ currentUserId }: UsuariosTableProps) {
+export function UsuariosTable({ currentUserId, currentUserRole }: UsuariosTableProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -132,6 +134,11 @@ export function UsuariosTable({ currentUserId }: UsuariosTableProps) {
     router.push(`/admin/usuarios/${usuarioId}`);
   }
 
+  function canEditOrDelete(item: UsuarioListItem): boolean {
+    if (item.role === "MASTER" && currentUserRole !== "MASTER") return false;
+    return true;
+  }
+
   return (
     <Stack spacing={2}>
       <Box
@@ -171,7 +178,7 @@ export function UsuariosTable({ currentUserId }: UsuariosTableProps) {
                 <TableRow>
                   <TableCell>Nome</TableCell>
                   <TableCell>Email</TableCell>
-                  <TableCell>Role</TableCell>
+                  <TableCell>Perfil</TableCell>
                   <TableCell>Status</TableCell>
                   <TableCell>Criado em</TableCell>
                   <TableCell align="right">Acoes</TableCell>
@@ -187,7 +194,7 @@ export function UsuariosTable({ currentUserId }: UsuariosTableProps) {
                   >
                     <TableCell>{`${item.nome} ${item.sobrenome}`}</TableCell>
                     <TableCell>{item.email}</TableCell>
-                    <TableCell>{item.role}</TableCell>
+                    <TableCell>{ROLE_TRANSLATIONS[item.role]}</TableCell>
                     <TableCell>
                       <Chip
                         size="small"
@@ -213,6 +220,7 @@ export function UsuariosTable({ currentUserId }: UsuariosTableProps) {
                         </Button>
                         <Button
                           size="small"
+                          disabled={!canEditOrDelete(item)}
                           onClick={(event) => {
                             event.stopPropagation();
                             router.push(`/admin/usuarios/${item.id}/editar`);
@@ -225,7 +233,8 @@ export function UsuariosTable({ currentUserId }: UsuariosTableProps) {
                           color="error"
                           disabled={
                             item.id === currentUserId ||
-                            item.status === "INATIVO"
+                            item.status === "INATIVO" ||
+                            !canEditOrDelete(item)
                           }
                           onClick={(event) => {
                             event.stopPropagation();
@@ -282,6 +291,7 @@ export function UsuariosTable({ currentUserId }: UsuariosTableProps) {
 
       <GenerateInviteDialog
         open={generateInviteDialogOpen}
+        currentUserRole={currentUserRole}
         onClose={() => setGenerateInviteDialogOpen(false)}
       />
     </Stack>

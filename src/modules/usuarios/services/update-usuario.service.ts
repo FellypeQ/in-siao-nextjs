@@ -3,13 +3,14 @@ import { countActiveAdminsRepository } from "@/modules/usuarios/repositories/cou
 import { findUsuarioByEmailRepository } from "@/modules/usuarios/repositories/find-usuario-by-email.repository";
 import { findUsuarioByIdRepository } from "@/modules/usuarios/repositories/find-usuario-by-id.repository";
 import { updateUsuarioRepository } from "@/modules/usuarios/repositories/update-usuario.repository";
-import type { UpdateUsuarioInput } from "@/modules/usuarios/types/usuario.type";
+import type { UpdateUsuarioInput, UsuarioRole } from "@/modules/usuarios/types/usuario.type";
 import { AppError } from "@/shared/errors/app-error";
 
 type UpdateUsuarioServiceInput = {
   id: string;
   data: UpdateUsuarioInput;
   actorId: string;
+  actorRole: UsuarioRole;
 };
 
 export async function updateUsuarioService(input: UpdateUsuarioServiceInput) {
@@ -24,6 +25,14 @@ export async function updateUsuarioService(input: UpdateUsuarioServiceInput) {
       "Usuario inativo nao pode ser editado",
       400,
       "INACTIVE_USER",
+    );
+  }
+
+  if (currentUser.role === "MASTER" && input.actorRole !== "MASTER") {
+    throw new AppError(
+      "Sem permissao para editar usuario Master",
+      403,
+      "FORBIDDEN",
     );
   }
 
@@ -48,12 +57,15 @@ export async function updateUsuarioService(input: UpdateUsuarioServiceInput) {
     }
   }
 
-  if (currentUser.role === "ADMIN" && input.data.role === "STAFF") {
+  if (
+    (currentUser.role === "ADMIN" || currentUser.role === "MASTER") &&
+    input.data.role === "STAFF"
+  ) {
     const activeAdmins = await countActiveAdminsRepository();
 
     if (activeAdmins <= 1) {
       throw new AppError(
-        "Nao e permitido rebaixar o ultimo ADMIN do sistema",
+        "Nao e permitido rebaixar o ultimo administrador do sistema",
         400,
         "LAST_ADMIN_PROTECTION",
       );

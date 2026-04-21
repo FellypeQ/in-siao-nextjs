@@ -4,7 +4,7 @@ import { createSessionToken } from "@/lib/auth";
 import { findUserByEmailRepository } from "@/modules/auth/repositories/find-user-by-email.repository";
 import type { SignInInput } from "@/modules/auth/schemas/sign-in.schema";
 import type { SignInResult } from "@/modules/auth/types/auth.type";
-import { loadUserPermissionsService } from "@/modules/usuarios/services/load-user-permissions.service";
+import { findUserPermissionsByUserIdRepository } from "@/modules/usuarios/repositories/find-user-permissions-by-user-id.repository";
 import { AppError } from "@/shared/errors/app-error";
 
 export async function signInAuthService(
@@ -28,7 +28,9 @@ export async function signInAuthService(
   }
 
   const permissions =
-    user.role === "ADMIN" ? [] : await loadUserPermissionsService(user.id);
+    user.role === "ADMIN" || user.role === "MASTER"
+      ? []
+      : await findUserPermissionsByUserIdRepository(user.id);
 
   const token = await createSessionToken({
     id: user.id,

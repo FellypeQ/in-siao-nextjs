@@ -5,7 +5,7 @@ type UpdateUsuarioRepositoryInput = {
   nome?: string;
   sobrenomeEncrypted?: string;
   email?: string;
-  role?: "ADMIN" | "STAFF";
+  role?: "ADMIN" | "STAFF" | "MASTER";
 };
 
 export async function updateUsuarioRepository(

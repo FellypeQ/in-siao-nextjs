@@ -1,4 +1,4 @@
-export type UserInviteRole = "ADMIN" | "STAFF";
+export type UserInviteRole = "ADMIN" | "STAFF" | "MASTER";
 
 export type GenerateUserInviteInput = {
   role: UserInviteRole;

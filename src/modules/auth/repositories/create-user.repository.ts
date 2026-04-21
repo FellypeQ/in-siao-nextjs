@@ -8,7 +8,7 @@ type CreateUserRepositoryInput = {
   sobrenomeEncrypted: string;
   email: string;
   passwordHash: string;
-  role?: "ADMIN" | "STAFF";
+  role?: "ADMIN" | "STAFF" | "MASTER";
 };
 
 export async function createUserRepository(

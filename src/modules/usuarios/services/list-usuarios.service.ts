@@ -7,7 +7,7 @@ function toUsuarioPublic(user: {
   nome: string;
   sobrenomeEncrypted: string;
   email: string;
-  role: "ADMIN" | "STAFF";
+  role: "ADMIN" | "STAFF" | "MASTER";
   deletedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;

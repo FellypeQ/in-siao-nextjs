@@ -19,15 +19,19 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 
-type InviteRole = "ADMIN" | "STAFF";
+import { ROLE_TRANSLATIONS } from "@/shared/constants/role-translations";
+
+type InviteRole = "ADMIN" | "STAFF" | "MASTER";
 
 type GenerateInviteDialogProps = {
   open: boolean;
+  currentUserRole: "ADMIN" | "STAFF" | "MASTER";
   onClose: () => void;
 };
 
 export function GenerateInviteDialog({
   open,
+  currentUserRole,
   onClose,
 }: GenerateInviteDialogProps) {
   const [role, setRole] = useState<InviteRole>("STAFF");
@@ -35,6 +39,11 @@ export function GenerateInviteDialog({
   const [errorMessage, setErrorMessage] = useState("");
   const [inviteLink, setInviteLink] = useState("");
   const [copied, setCopied] = useState(false);
+
+  const availableRoles: InviteRole[] =
+    currentUserRole === "MASTER"
+      ? ["MASTER", "ADMIN", "STAFF"]
+      : ["ADMIN", "STAFF"];
 
   async function handleGenerateInvite() {
     try {
@@ -95,15 +104,18 @@ export function GenerateInviteDialog({
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
           <FormControl fullWidth>
-            <InputLabel id="invite-role-label">Role</InputLabel>
+            <InputLabel id="invite-role-label">Perfil de acesso</InputLabel>
             <Select
               labelId="invite-role-label"
-              label="Role"
+              label="Perfil de acesso"
               value={role}
               onChange={(event) => setRole(event.target.value as InviteRole)}
             >
-              <MenuItem value="ADMIN">ADMIN</MenuItem>
-              <MenuItem value="STAFF">STAFF</MenuItem>
+              {availableRoles.map((r) => (
+                <MenuItem key={r} value={r}>
+                  {ROLE_TRANSLATIONS[r]}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
 
@@ -143,7 +155,11 @@ export function GenerateInviteDialog({
         <Button onClick={handleClose} disabled={loading}>
           Fechar
         </Button>
-        <Button variant="contained" onClick={() => void handleGenerateInvite()} disabled={loading}>
+        <Button
+          variant="contained"
+          onClick={() => void handleGenerateInvite()}
+          disabled={loading}
+        >
           Gerar link
         </Button>
       </DialogActions>

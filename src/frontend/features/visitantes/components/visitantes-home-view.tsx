@@ -22,7 +22,7 @@ type ChartPoint = { date: string; count: number };
 
 type VisitantesHomeViewProps = {
   permissions: string[];
-  role: "ADMIN" | "STAFF";
+  role: "ADMIN" | "STAFF" | "MASTER";
 };
 
 const OFFSET_MS = 3 * 60 * 60 * 1000; // UTC-3
@@ -44,10 +44,14 @@ export function VisitantesHomeView({
   role,
 }: VisitantesHomeViewProps) {
   const isAdmin = role === "ADMIN";
-  const canCadastrar = isAdmin || permissions.includes("VISITANTES_CADASTRAR");
-  const canListar = isAdmin || permissions.includes("VISITANTES_LISTAR");
+  const isMaster = role === "MASTER";
+  const canCadastrar =
+    isAdmin || isMaster || permissions.includes("VISITANTES_CADASTRAR");
+  const canListar =
+    isAdmin || isMaster || permissions.includes("VISITANTES_LISTAR");
   const canMensagens =
     isAdmin ||
+    isMaster ||
     permissions.includes("MENSAGENS_GERENCIAR") ||
     permissions.includes("MENSAGENS_ENVIAR");
 

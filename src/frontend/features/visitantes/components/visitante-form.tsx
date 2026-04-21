@@ -74,7 +74,7 @@ type VisitanteFormProps = {
   mode: FormMode;
   visitanteId?: string;
   permissions?: string[];
-  role?: "ADMIN" | "STAFF";
+  role?: "ADMIN" | "STAFF" | "MASTER";
 };
 
 type VisitanteFormState = {

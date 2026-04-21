@@ -23,7 +23,7 @@ export default async function EditarUsuarioPage({
       }}
     >
       <InnerPageContent header={{ title: "Editar Usuário" }}>
-        <UsuarioForm usuarioId={id} currentUserId={session.sub} />
+        <UsuarioForm usuarioId={id} currentUserId={session.sub} currentUserRole={session.role} />
       </InnerPageContent>
     </AuthenticatedShell>
   );

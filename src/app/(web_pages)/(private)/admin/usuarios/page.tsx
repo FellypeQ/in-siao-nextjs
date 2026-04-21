@@ -18,7 +18,7 @@ export default async function UsuariosPage() {
       <InnerPageContent
         header={{ title: "Usuários do Sistema", withoutBackButton: true }}
       >
-        <UsuariosTable currentUserId={session.sub} />
+        <UsuariosTable currentUserId={session.sub} currentUserRole={session.role} />
       </InnerPageContent>
     </AuthenticatedShell>
   );

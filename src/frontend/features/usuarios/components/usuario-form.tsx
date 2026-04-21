@@ -126,10 +126,6 @@ export function UsuarioForm({ usuarioId, currentUserId }: UsuarioFormProps) {
 
   return (
     <Stack spacing={2.5}>
-      <Typography variant="h4" sx={{ fontWeight: 800 }}>
-        Editar usuario
-      </Typography>
-
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
       {successMessage && <Alert severity="success">{successMessage}</Alert>}
 

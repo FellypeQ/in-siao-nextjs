@@ -1,14 +1,15 @@
 import { AuthenticatedShell } from "@/frontend/components/layout/authenticated-shell";
-import { UsuarioForm } from "@/frontend/features/usuarios/components/usuario-form";
+import { InnerPageContent } from "@/frontend/components/layout/inner-page-content";
+import { UsuarioDetail } from "@/frontend/features/usuarios/components/usuario-detail";
 import { requireAdminSession } from "@/lib/require-admin-session";
 
-type EditarUsuarioPageProps = {
+type UsuarioDetailPageProps = {
   params: Promise<{ id: string }>;
 };
 
-export default async function EditarUsuarioPage({
+export default async function UsuarioDetailPage({
   params,
-}: EditarUsuarioPageProps) {
+}: UsuarioDetailPageProps) {
   const session = await requireAdminSession();
   const { id } = await params;
 
@@ -21,7 +22,9 @@ export default async function EditarUsuarioPage({
         permissions: session.permissions,
       }}
     >
-      <UsuarioForm usuarioId={id} currentUserId={session.sub} />
+      <InnerPageContent header={{ title: "Detalhes do Usuário" }}>
+        <UsuarioDetail usuarioId={id} />
+      </InnerPageContent>
     </AuthenticatedShell>
   );
 }

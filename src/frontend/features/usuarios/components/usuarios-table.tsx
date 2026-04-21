@@ -145,7 +145,10 @@ export function UsuariosTable({ currentUserId }: UsuariosTableProps) {
         <Typography variant="h4" sx={{ fontWeight: 800 }}>
           Usuarios
         </Typography>
-        <Button variant="contained" onClick={() => setGenerateInviteDialogOpen(true)}>
+        <Button
+          variant="contained"
+          onClick={() => setGenerateInviteDialogOpen(true)}
+        >
           Gerar convite
         </Button>
       </Box>

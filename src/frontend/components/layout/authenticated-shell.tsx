@@ -5,6 +5,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import HomeIcon from "@mui/icons-material/Home";
 import GroupAddIcon from "@mui/icons-material/GroupAdd";
 import GroupsIcon from "@mui/icons-material/Groups";
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import PersonIcon from "@mui/icons-material/Person";
 import { Permission, type PermissionKey } from "@/shared/constants/permissions";
 import {
@@ -32,7 +33,7 @@ type AuthenticatedShellProps = {
   user: {
     nome: string;
     email: string;
-    role: "ADMIN" | "STAFF";
+    role: "ADMIN" | "STAFF" | "MASTER";
     permissions?: string[];
   };
   children: React.ReactNode;
@@ -55,7 +56,7 @@ export function AuthenticatedShell({
   }
 
   function hasPermission(permission: PermissionKey): boolean {
-    if (user.role === "ADMIN") {
+    if (user.role === "ADMIN" || user.role === "MASTER") {
       return true;
     }
 
@@ -64,11 +65,15 @@ export function AuthenticatedShell({
 
   const canOpenVisitantesModule =
     user.role === "ADMIN" ||
+    user.role === "MASTER" ||
     hasPermission(Permission.VISITANTES_LISTAR) ||
     hasPermission(Permission.VISITANTES_CADASTRAR) ||
     hasPermission(Permission.VISITANTES_EDITAR) ||
     hasPermission(Permission.VISITANTES_EXCLUIR) ||
     hasPermission(Permission.VISITANTES_EXPORTAR);
+
+  const canOpenUsuariosModule = user.role === "ADMIN" || user.role === "MASTER";
+  const canOpenPerfisModule = user.role === "MASTER";
 
   const drawerContent = (
     <Box sx={{ pt: 2 }}>
@@ -102,7 +107,7 @@ export function AuthenticatedShell({
             </ListItemButton>
           </ListItem>
         )}
-        {user.role === "ADMIN" && (
+        {canOpenUsuariosModule && (
           <ListItem disablePadding>
             <ListItemButton
               component={Link}
@@ -113,6 +118,20 @@ export function AuthenticatedShell({
                 <GroupsIcon />
               </ListItemIcon>
               <ListItemText primary="Usuarios" />
+            </ListItemButton>
+          </ListItem>
+        )}
+        {canOpenPerfisModule && (
+          <ListItem disablePadding>
+            <ListItemButton
+              component={Link}
+              href="/admin/perfis"
+              onClick={() => setMobileOpen(false)}
+            >
+              <ListItemIcon sx={{ color: "inherit" }}>
+                <ManageAccountsIcon />
+              </ListItemIcon>
+              <ListItemText primary="Perfis de Usuario" />
             </ListItemButton>
           </ListItem>
         )}

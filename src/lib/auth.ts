@@ -3,7 +3,7 @@ import type { NextRequest, NextResponse } from "next/server";
 export const SESSION_COOKIE_NAME = "in_siao_session";
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 6;
 
-type SessionRole = "ADMIN" | "STAFF";
+type SessionRole = "ADMIN" | "STAFF" | "MASTER";
 
 export type SessionPayload = {
   sub: string;

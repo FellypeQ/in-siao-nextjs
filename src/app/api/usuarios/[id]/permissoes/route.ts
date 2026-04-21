@@ -12,9 +12,9 @@ export async function GET(_: Request, { params }: Params) {
   try {
     await requireAdminSessionForApi();
     const { id } = await params;
-    const permissions = await loadUserPermissionsService(id);
+    const result = await loadUserPermissionsService(id);
 
-    return Response.json({ success: true, permissions });
+    return Response.json({ success: true, ...result });
   } catch (error) {
     return toErrorResponse(error);
   }
@@ -41,7 +41,11 @@ export async function PATCH(request: Request, { params }: Params) {
       );
     }
 
-    await updateUserPermissionsService(id, parsed.data.permissions);
+    await updateUserPermissionsService({
+      userId: id,
+      profileIds: parsed.data.profileIds,
+      manualPermissions: parsed.data.permissions,
+    });
 
     return Response.json({ success: true });
   } catch (error) {

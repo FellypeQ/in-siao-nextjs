@@ -6,7 +6,7 @@ type UsuarioEntity = {
   sobrenomeEncrypted: string;
   email: string;
   passwordHash: string;
-  role: "ADMIN" | "STAFF";
+  role: "ADMIN" | "STAFF" | "MASTER";
   deletedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;

@@ -23,7 +23,7 @@ export default async function UsuarioDetailPage({
       }}
     >
       <InnerPageContent header={{ title: "Detalhes do Usuário" }}>
-        <UsuarioDetail usuarioId={id} />
+        <UsuarioDetail usuarioId={id} currentUserRole={session.role} />
       </InnerPageContent>
     </AuthenticatedShell>
   );

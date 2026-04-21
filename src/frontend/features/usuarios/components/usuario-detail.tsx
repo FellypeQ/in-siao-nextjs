@@ -1,6 +1,7 @@
 "use client";
 
 import { UserPermissionsForm } from "@/frontend/features/usuarios/components/user-permissions-form";
+import { ROLE_TRANSLATIONS } from "@/shared/constants/role-translations";
 import {
   Alert,
   Box,
@@ -9,6 +10,8 @@ import {
   CardContent,
   CircularProgress,
   Stack,
+  Tab,
+  Tabs,
   Typography,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
@@ -16,6 +19,7 @@ import { useEffect, useState } from "react";
 
 type UsuarioDetailProps = {
   usuarioId: string;
+  currentUserRole?: "ADMIN" | "STAFF" | "MASTER";
 };
 
 type UsuarioDetailData = {
@@ -23,7 +27,7 @@ type UsuarioDetailData = {
   nome: string;
   sobrenome: string;
   email: string;
-  role: "ADMIN" | "STAFF";
+  role: "ADMIN" | "STAFF" | "MASTER";
   status: "ATIVO" | "INATIVO";
   deletedAt: string | null;
   createdAt: string;
@@ -37,11 +41,12 @@ function formatDateTime(value: string) {
   }).format(new Date(value));
 }
 
-export function UsuarioDetail({ usuarioId }: UsuarioDetailProps) {
+export function UsuarioDetail({ usuarioId, currentUserRole }: UsuarioDetailProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [usuario, setUsuario] = useState<UsuarioDetailData | null>(null);
+  const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
     async function loadUsuario() {
@@ -87,60 +92,71 @@ export function UsuarioDetail({ usuarioId }: UsuarioDetailProps) {
     <Stack spacing={2.5}>
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-      <Card>
-        <CardContent>
-          <Stack spacing={1.2}>
-            <Typography>
-              <strong>Nome:</strong> {usuario.nome}
-            </Typography>
-            <Typography>
-              <strong>Sobrenome:</strong> {usuario.sobrenome}
-            </Typography>
-            <Typography>
-              <strong>Email:</strong> {usuario.email}
-            </Typography>
-            <Typography>
-              <strong>Role:</strong> {usuario.role}
-            </Typography>
-            <Typography>
-              <strong>Status:</strong>{" "}
-              {usuario.status === "ATIVO" ? "Ativo" : "Inativo"}
-            </Typography>
-            <Typography>
-              <strong>Criado em:</strong> {formatDateTime(usuario.createdAt)}
-            </Typography>
-            <Typography>
-              <strong>Atualizado em:</strong>{" "}
-              {formatDateTime(usuario.updatedAt)}
-            </Typography>
-            {usuario.deletedAt && (
+      <Tabs value={activeTab} onChange={(_, value: number) => setActiveTab(value)}>
+        <Tab label="Dados" />
+        <Tab label="Permissoes" />
+      </Tabs>
+
+      {activeTab === 0 && (
+        <Card>
+          <CardContent>
+            <Stack spacing={1.2}>
               <Typography>
-                <strong>Inativado em:</strong>{" "}
-                {formatDateTime(usuario.deletedAt)}
+                <strong>Nome:</strong> {usuario.nome}
               </Typography>
-            )}
+              <Typography>
+                <strong>Sobrenome:</strong> {usuario.sobrenome}
+              </Typography>
+              <Typography>
+                <strong>Email:</strong> {usuario.email}
+              </Typography>
+              <Typography>
+                <strong>Perfil:</strong> {ROLE_TRANSLATIONS[usuario.role]}
+              </Typography>
+              <Typography>
+                <strong>Status:</strong>{" "}
+                {usuario.status === "ATIVO" ? "Ativo" : "Inativo"}
+              </Typography>
+              <Typography>
+                <strong>Criado em:</strong> {formatDateTime(usuario.createdAt)}
+              </Typography>
+              <Typography>
+                <strong>Atualizado em:</strong>{" "}
+                {formatDateTime(usuario.updatedAt)}
+              </Typography>
+              {usuario.deletedAt && (
+                <Typography>
+                  <strong>Inativado em:</strong>{" "}
+                  {formatDateTime(usuario.deletedAt)}
+                </Typography>
+              )}
 
-            <UserPermissionsForm usuarioId={usuario.id} readOnly />
-
-            <Stack direction="row" spacing={1.5} sx={{ pt: 1 }}>
-              <Button
-                variant="contained"
-                onClick={() =>
-                  router.push(`/admin/usuarios/${usuario.id}/editar`)
-                }
-              >
-                Editar
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={() => router.push("/admin/usuarios")}
-              >
-                Voltar para listagem
-              </Button>
+              <Stack direction="row" spacing={1.5} sx={{ pt: 1 }}>
+                <Button
+                  variant="contained"
+                  onClick={() => router.push(`/admin/usuarios/${usuario.id}/editar`)}
+                >
+                  Editar
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => router.push("/admin/usuarios")}
+                >
+                  Voltar para listagem
+                </Button>
+              </Stack>
             </Stack>
-          </Stack>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
+
+      {activeTab === 1 && (
+        <Card>
+          <CardContent>
+            <UserPermissionsForm usuarioId={usuario.id} readOnly />
+          </CardContent>
+        </Card>
+      )}
     </Stack>
   );
 }

@@ -94,7 +94,7 @@ function formatDateTime(date: string) {
 }
 
 type VisitantesListProps = {
-  role: "ADMIN" | "STAFF";
+  role: "ADMIN" | "STAFF" | "MASTER";
   permissions: string[];
 };
 

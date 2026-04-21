@@ -7,7 +7,7 @@ type MyProfileOutput = {
   nome: string;
   sobrenome: string;
   email: string;
-  role: "ADMIN" | "STAFF";
+  role: "ADMIN" | "STAFF" | "MASTER";
 };
 
 export async function getMyProfileService(userId: string): Promise<MyProfileOutput> {

@@ -46,6 +46,7 @@ export async function PATCH(request: Request, { params }: Params) {
       id,
       data: parsed.data,
       actorId: session.sub,
+      actorRole: session.role,
     });
 
     const usuario = await getUsuarioService(id);
@@ -64,6 +65,7 @@ export async function DELETE(_: Request, { params }: Params) {
     const result = await softDeleteUsuarioService({
       id,
       actorId: session.sub,
+      actorRole: session.role,
     });
 
     return Response.json(result);

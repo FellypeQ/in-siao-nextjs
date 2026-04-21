@@ -26,11 +26,14 @@ export async function POST(request: Request) {
     const requestUrl = new URL(request.url);
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? requestUrl.origin;
 
-    const invite = await generateUserInviteService({
-      role: parsed.data.role,
-      createdById: session.sub,
-      appUrl,
-    });
+    const invite = await generateUserInviteService(
+      {
+        role: parsed.data.role,
+        createdById: session.sub,
+        appUrl,
+      },
+      session.role,
+    );
 
     return Response.json(
       {

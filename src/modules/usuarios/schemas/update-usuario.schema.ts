@@ -7,7 +7,7 @@ export const updateUsuarioSchema = z
     nome: z.string().trim().min(2).max(100).optional(),
     sobrenome: z.string().trim().min(2).max(100).optional(),
     email: z.string().trim().email().optional(),
-    role: z.enum(["ADMIN", "STAFF"]).optional(),
+    role: z.enum(["ADMIN", "STAFF", "MASTER"]).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "Informe ao menos um campo para atualizacao",

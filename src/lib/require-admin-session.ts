@@ -25,7 +25,7 @@ export async function requireAdminSession() {
     redirect("/login");
   }
 
-  if (currentUser.role !== "ADMIN") {
+  if (currentUser.role !== "ADMIN" && currentUser.role !== "MASTER") {
     redirect("/");
   }
 
@@ -58,7 +58,7 @@ export async function requireAdminSessionForApi() {
     throw new AppError("Sessao invalida", 401, "INVALID_SESSION");
   }
 
-  if (currentUser.role !== "ADMIN") {
+  if (currentUser.role !== "ADMIN" && currentUser.role !== "MASTER") {
     throw new AppError("Acesso negado", 403, "FORBIDDEN");
   }
 

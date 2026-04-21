@@ -231,7 +231,7 @@ export function AuthenticatedShell({
         </Drawer>
       </Box>
 
-      <Box component="main" sx={{ flexGrow: 1, mt: 8 }}>
+      <Box component="main" sx={{ flexGrow: 1, mt: { xs: 7, sm: 8 } }}>
         {children}
       </Box>
     </Box>

@@ -73,10 +73,6 @@ export function VisitantesHomeView({
 
   return (
     <Stack spacing={3}>
-      <Typography variant="h4" sx={{ fontWeight: 800 }}>
-        Visitantes
-      </Typography>
-
       <Grid container spacing={2}>
         {canCadastrar && (
           <Grid size={{ xs: 12, sm: 6, md: 4 }}>

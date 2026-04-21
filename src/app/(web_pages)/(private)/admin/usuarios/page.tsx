@@ -15,7 +15,9 @@ export default async function UsuariosPage() {
         permissions: session.permissions,
       }}
     >
-      <InnerPageContent>
+      <InnerPageContent
+        header={{ title: "Usuários do Sistema", withoutBackButton: true }}
+      >
         <UsuariosTable currentUserId={session.sub} />
       </InnerPageContent>
     </AuthenticatedShell>

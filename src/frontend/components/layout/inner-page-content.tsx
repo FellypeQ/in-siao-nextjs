@@ -8,6 +8,7 @@ import { type ReactNode } from "react";
 type InnerPageContentHeader = {
   title: string;
   backHref?: string;
+  withoutBackButton?: boolean;
 };
 
 type InnerPageContentProps = {
@@ -51,26 +52,34 @@ export function InnerPageContent({ header, children }: InnerPageContentProps) {
           <Toolbar
             disableGutters
             sx={{
-              px: { xs: 1, sm: 2 },
-              py: 1,
+              px: {
+                xs: header.withoutBackButton ? 2 : 1,
+                sm: header.withoutBackButton ? 4 : 2,
+              },
+              py: header.withoutBackButton ? 2 : 1,
               display: "flex",
-              alignItems: { xs: "flex-start", sm: "center" },
+              alignItems: "center",
             }}
           >
-            <Button
-              variant="text"
-              color="inherit"
-              size="small"
-              startIcon={<ArrowBackIcon />}
-              onClick={handleBack}
-              aria-label="Voltar"
-              sx={{ minWidth: 0, px: 1 }}
-            ></Button>
+            {!header.withoutBackButton && (
+              <Button
+                variant="text"
+                color="inherit"
+                size="small"
+                startIcon={<ArrowBackIcon />}
+                onClick={handleBack}
+                aria-label="Voltar"
+                sx={{ minWidth: 0, px: 1 }}
+              />
+            )}
             <Box sx={{ minWidth: 0 }}>
               <Typography
                 sx={{
                   fontWeight: 800,
-                  fontSize: { xs: "0.8rem", sm: "1.2rem" },
+                  fontSize: {
+                    xs: header.withoutBackButton ? "1.2rem" : "0.8rem",
+                    sm: header.withoutBackButton ? "2rem" : "1.2rem",
+                  },
                 }}
               >
                 {header.title}

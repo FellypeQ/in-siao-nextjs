@@ -26,7 +26,9 @@ export default async function VisitantesPage() {
         permissions: session.permissions,
       }}
     >
-      <InnerPageContent>
+      <InnerPageContent
+        header={{ title: "Gestão de visitantes", withoutBackButton: true }}
+      >
         <VisitantesHomeView
           permissions={session.permissions}
           role={session.role}

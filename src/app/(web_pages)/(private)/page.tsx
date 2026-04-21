@@ -15,7 +15,9 @@ export default async function HomePage() {
         permissions: session.permissions,
       }}
     >
-      <InnerPageContent>
+      <InnerPageContent
+        header={{ title: "Gestão Sião", withoutBackButton: true }}
+      >
         <HomePageView />
       </InnerPageContent>
     </AuthenticatedShell>

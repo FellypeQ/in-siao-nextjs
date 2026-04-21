@@ -21,68 +21,54 @@ A sincronização da branch com o remote e a criação do PR serão feitas manua
 
 ### Nome da branch
 
-feature/spec-014-password-reset-email-preview
+feature/spec-017-018-visitantes-baptized-exportacao
 
 ### Título do PR
 
-feat: implementa fluxo de esqueci minha senha com reset via email (SPEC 014)
+feat: remove campo batizado e corrige exportacao de visitantes (SPEC 017/018)
 
 ### Descrição do PR
 
 ## Contexto
 
-Implementacao da SPEC 014 para habilitar recuperacao de senha com token por email, incluindo paginas publicas de solicitacao/confirmacao, rotas API, modelagem de token no banco, envio de email via Resend e cobertura de testes.
+Implementacao conjunta das SPECs 017 e 018 para simplificar o fluxo de visitantes:
+
+- remover o campo Batizado da experiencia de cadastro/edicao/detalhe
+- garantir persistencia interna de `baptized = false`
+- corrigir a exportacao Excel removendo a coluna "Tipo de Membro" e ajustando o header de data
 
 ## O que foi implementado
 
-### Fluxo completo de password reset
+### Visitantes (cadastro/edicao/detalhe)
 
-- Criadas as paginas publicas:
-  - `/(web_pages)/esqueci-minha-senha`
-  - `/(web_pages)/redefinir-senha`
-- Adicionado link "Esqueci minha senha" na tela de login.
-- Implementado redirecionamento de sucesso para `/login?status=password-reset-success` apos reset.
+- Removido campo "Batizado" do formulario de visitantes (`visitante-form.tsx`).
+- Removido envio de `baptized` no payload de criacao e atualizacao.
+- Removida exibicao de "Batizado" no modal de detalhes do visitante.
 
-### API e camada de dominio
+### Camada de dominio (schemas/services/types)
 
-- Criados endpoints publicos:
-  - `POST /api/auth/password-reset/request`
-  - `POST /api/auth/password-reset/confirm`
-- Criados schemas Zod de request/confirm.
-- Criados repositories para token de reset e atualizacao de senha.
-- Criados services de solicitacao e confirmacao do reset.
-- Implementado rate limit in-memory (5 req / 15 min) no endpoint de request.
+- Removido `baptized` dos schemas Zod de criacao e atualizacao de visitante.
+- Removido `baptized` dos tipos de input (`CreateVisitanteInput` e `UpdateVisitanteInput`).
+- Services de criacao e atualizacao agora persistem `baptized: false` para o membro principal.
 
-### Email e preview
+### Exportacao Excel de visitantes
 
-- Criado job `send-password-reset-email.job.ts` com Resend.
-- Criado template React Email `password-reset.tsx` com render utilitario.
-- Ajustado script de preview para carregar variaveis de ambiente no CLI:
-  - `node --env-file=.env ./node_modules/react-email/dist/cli/index.mjs dev --dir ./src/mailer/templates --port 4000`
-- Template passou a usar `NEXT_PUBLIC_STORAGE_URL` para assets publicos.
-
-### Banco de dados
-
-- Adicionado model `PasswordResetToken` no Prisma.
-- Criada migration `20260420170606_add_password_reset_tokens`.
-- Prisma Client atualizado.
-
-### Controle de acesso publico
-
-- Atualizado `src/proxy.ts` para permitir acesso publico as rotas:
-  - `/esqueci-minha-senha`
-  - `/redefinir-senha`
-  - `/api/auth/password-reset/request`
-  - `/api/auth/password-reset/confirm`
+- Removida coluna "Tipo de Membro" da aba "Todos os visitantes".
+- Header da data alterado para "Data de cadastro" nas abas impactadas.
+- Mantida a ordem das colunas remanescentes com reindexacao de asserts nos testes.
 
 ### Documentacao
 
-- Atualizada a SPEC 014 com status de execucao, complementos (email/testes/preview) e pos-mortem curto.
+- Atualizadas as SPECs:
+  - `plans/017 - remover-campo-batizado-visitante.md`
+  - `plans/018 - corrigir-exportacao-visitante.md`
+    com status de execucao e checklist de entrega.
 
 ## Testes
 
-- Novos testes de schema, service, route e UI para o fluxo de password reset.
-- Cobertura de cenarios de validacao, expiracao de token, nao vazamento de existencia de email e rate limit.
-- Execucoes validadas durante a entrega:
-  - `npm run test -- test/frontend/features/auth/components/forgot-password-view.test.tsx`
-  - `npm run lint -- src/proxy.ts`
+- Testes atualizados em schema, service, route e UI de visitantes.
+- Validacoes executadas durante a entrega:
+  - `npx vitest run test/modules/visitantes/schemas/create-visitante.schema.test.ts test/modules/visitantes/schemas/update-visitante.schema.test.ts test/modules/visitantes/services/create-visitante.service.test.ts test/modules/visitantes/services/update-visitante.service.test.ts test/modules/visitantes/services/export-visitantes-excel.service.test.ts test/frontend/features/visitantes/components/visitante-form.test.tsx test/app/api/visitantes/route.test.ts test/app/api/visitantes/[id]/route.test.ts`
+  - `npm run lint`
+
+Observacao: o lint atual do projeto segue sem erros, apenas warnings preexistentes fora do escopo desta entrega.

@@ -47,7 +47,6 @@ type VisitanteDetail = {
     name: string;
     birthDate: string;
     phone: string | null;
-    baptized: boolean;
     createdAt: string;
   };
   visitorProfile: {
@@ -409,10 +408,6 @@ export function VisitantesList({ role, permissions }: VisitantesListProps) {
                   {selected.member.phone
                     ? formatPhone(selected.member.phone)
                     : "Nao informado"}
-                </Typography>
-                <Typography>
-                  <strong>Batizado:</strong>{" "}
-                  {selected.member.baptized ? "Sim" : "Nao"}
                 </Typography>
                 <Typography>
                   <strong>Igreja atual:</strong>{" "}

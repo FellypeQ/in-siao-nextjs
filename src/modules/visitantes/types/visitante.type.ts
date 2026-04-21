@@ -4,93 +4,91 @@ import type {
   Member,
   MemberRelationship,
   MemberType,
-  RelationshipType
-} from "@prisma/client"
+  RelationshipType,
+} from "@prisma/client";
 
 export type CreateVisitanteInput = {
-  name: string
-  birthDate: Date
-  document?: string
-  phone?: string
-  baptized: boolean
-  actualChurch: ActualChurch
-  howKnow: HowKnow
-  howKnowOtherAnswer?: string
-  prayText?: string
-  familyMembers: CreateFamilyMemberInput[]
-}
+  name: string;
+  birthDate: Date;
+  document?: string;
+  phone?: string;
+  actualChurch: ActualChurch;
+  howKnow: HowKnow;
+  howKnowOtherAnswer?: string;
+  prayText?: string;
+  familyMembers: CreateFamilyMemberInput[];
+};
 
 export type CreateFamilyMemberInput = {
-  name: string
-  birthDate: Date
-  phone?: string
-  relationshipType: RelationshipType
-}
+  name: string;
+  birthDate: Date;
+  phone?: string;
+  relationshipType: RelationshipType;
+};
 
 export type UpdateVisitanteFamilyOperation =
   | {
-      action: "create"
-      payload: CreateFamilyMemberInput
+      action: "create";
+      payload: CreateFamilyMemberInput;
     }
   | {
-      action: "update"
-      relationshipId: string
-      memberId: string
-      payload: CreateFamilyMemberInput
+      action: "update";
+      relationshipId: string;
+      memberId: string;
+      payload: CreateFamilyMemberInput;
     }
   | {
-      action: "unlink"
-      relationshipId: string
+      action: "unlink";
+      relationshipId: string;
     }
   | {
-      action: "delete"
-      relationshipId: string
-      memberId: string
-    }
+      action: "delete";
+      relationshipId: string;
+      memberId: string;
+    };
 
 export type UpdateVisitanteInput = {
-  id: string
-  name: string
-  birthDate: Date
-  document?: string
-  phone?: string
-  baptized: boolean
-  actualChurch: ActualChurch
-  howKnow: HowKnow
-  howKnowOtherAnswer?: string
-  prayText?: string
-  familyOperations: UpdateVisitanteFamilyOperation[]
-}
+  id: string;
+  name: string;
+  birthDate: Date;
+  document?: string;
+  phone?: string;
+  actualChurch: ActualChurch;
+  howKnow: HowKnow;
+  howKnowOtherAnswer?: string;
+  prayText?: string;
+  familyOperations: UpdateVisitanteFamilyOperation[];
+};
 
 export type VisitanteListItem = {
-  id: string
-  name: string
-  birthDate: Date
-  phone: string | null
-  createdAt: Date
-}
+  id: string;
+  name: string;
+  birthDate: Date;
+  phone: string | null;
+  createdAt: Date;
+};
 
 export type VisitanteDetail = {
-  member: Member
+  member: Member;
   visitorProfile: {
-    actualChurch: ActualChurch
-    howKnow: HowKnow
-    howKnowOtherAnswer: string | null
-  }
+    actualChurch: ActualChurch;
+    howKnow: HowKnow;
+    howKnowOtherAnswer: string | null;
+  };
   prayers: Array<{
-    id: string
-    text: string
-    createdAt: Date
-  }>
+    id: string;
+    text: string;
+    createdAt: Date;
+  }>;
   familyRelationships: Array<
     MemberRelationship & {
       relatedMember: {
-        id: string
-        name: string
-        birthDate: Date
-        phone: string | null
-        type: MemberType
-      }
+        id: string;
+        name: string;
+        birthDate: Date;
+        phone: string | null;
+        type: MemberType;
+      };
     }
-  >
-}
+  >;
+};

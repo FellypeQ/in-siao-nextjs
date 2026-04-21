@@ -142,14 +142,11 @@ export function UsuariosTable({ currentUserId }: UsuariosTableProps) {
           gap: 1.5,
         }}
       >
-        <Typography variant="h4" sx={{ fontWeight: 800 }}>
-          Usuarios
-        </Typography>
         <Button
           variant="contained"
           onClick={() => setGenerateInviteDialogOpen(true)}
         >
-          Gerar convite
+          Gerar convite para novo usuário
         </Button>
       </Box>
 
